@@ -1,0 +1,25 @@
+{
+  "itemGroup.examplemod": "示例模组标签页",
+  "block.examplemod.example_block": "示例方块",
+  "item.examplemod.example_item": "示例物品",
+
+  "examplemod.configuration.title": "示例模组配置",
+  "examplemod.configuration.section.examplemod.common.toml": "示例模组配置",
+  "examplemod.configuration.section.examplemod.common.toml.title": "示例模组配置",
+  "examplemod.configuration.items": "物品列表",
+  "examplemod.configuration.logDirtBlock": "记录泥土方块",
+  "examplemod.configuration.magicNumberIntroduction": "魔法数字文本",
+  "examplemod.configuration.magicNumber": "魔法数字",
+
+  "tooltip.examplemod.shift_for_details": "按住<Shift>查看详情",
+
+  "tooltip.examplemod.maken_sword.summary.header": "§7成长之力:",
+  "tooltip.examplemod.maken_sword.summary.line1": "§7• §9击杀弱者，汲取其攻击力。",
+  "tooltip.examplemod.maken_sword.summary.line2": "§7• §a击杀强者，夺取其生命力以强化护甲。",
+
+  "tooltip.examplemod.maken_sword.details.header": "§7进化规则:",
+  "tooltip.examplemod.maken_sword.details.line1_desc": "§6当敌人的最大生命值 < 你的最大生命值:",
+  "tooltip.examplemod.maken_sword.details.line1_formula": "§8- §3武器攻击力增加: 0.25 * (敌人攻击力 / 自身攻击力)",
+  "tooltip.examplemod.maken_sword.details.line2_desc": "§6当敌人的最大生命值 > 你的最大生命值:",
+  "tooltip.examplemod.maken_sword.details.line2_formula": "§8- §3护甲上的最大生命值增加: 0.125 * (敌人生命值 - 自身生命值)"
+}

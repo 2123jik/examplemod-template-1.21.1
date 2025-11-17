@@ -1,0 +1,17 @@
+{
+  "targets": [
+    "temp"
+  ],
+  "passes": [
+    {
+      "name": "examplemod:ripple",
+      "intarget": "minecraft:main",
+      "outtarget": "temp"
+    },
+    {
+      "name": "blit",
+      "intarget": "temp",
+      "outtarget": "minecraft:main"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "itemGroup.examplemod": "Example Mod Tab",
+  "block.examplemod.example_block": "Example Block",
+  "item.examplemod.example_item": "Example Item",
+
+  "examplemod.configuration.title": "Example Mod Configs",
+  "examplemod.configuration.section.examplemod.common.toml": "Example Mod Configs",
+  "examplemod.configuration.section.examplemod.common.toml.title": "Example Mod Configs",
+  "examplemod.configuration.items": "Item List",
+  "examplemod.configuration.logDirtBlock": "Log Dirt Block",
+  "examplemod.configuration.magicNumberIntroduction": "Magic Number Text",
+  "examplemod.configuration.magicNumber": "Magic Number",
+  "tooltip.examplemod.shift_for_details": "Hold <Shift> for details",
+
+  "tooltip.examplemod.maken_sword.summary.header": "§7Power of Growth:",
+  "tooltip.examplemod.maken_sword.summary.line1": "§7• §9Slay the weak to absorb their attack power.",
+  "tooltip.examplemod.maken_sword.summary.line2": "§7• §aSlay the strong to steal their vitality for your armor.",
+
+  "tooltip.examplemod.maken_sword.details.header": "§7Evolution Rules:",
+  "tooltip.examplemod.maken_sword.details.line1_desc": "§6When Enemy Max HP < Your Max HP:",
+  "tooltip.examplemod.maken_sword.details.line1_formula": "§8- §3Weapon Attack Damage Bonus: 0.25 * (Enemy AD / Your AD)",
+  "tooltip.examplemod.maken_sword.details.line2_desc": "§6When Enemy Max HP > Your Max HP:",
+  "tooltip.examplemod.maken_sword.details.line2_formula": "§8- §3Armor Health Bonus: 0.125 * (Enemy HP - Your HP)",
+  "key.categories.yourmod": "",
+  "key.yourmod.inspect": ""
+}
