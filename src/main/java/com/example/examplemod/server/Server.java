@@ -15,11 +15,13 @@ import dev.shadowsoffire.apotheosis.loot.RarityRegistry;
 import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.apothic_attributes.payload.CritParticlePayload;
 import dev.shadowsoffire.placebo.events.AnvilLandEvent;
+import dev.xkmc.l2archery.init.registrate.ArcheryItems;
 import dev.xkmc.l2core.capability.attachment.GeneralCapabilityHolder;
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
 import dev.xkmc.l2hostility.events.HostilityInitEvent;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import dev.xkmc.modulargolems.content.entity.common.AbstractGolemEntity;
+import fuzs.enderzoology.EnderZoology;
 import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
@@ -30,10 +32,14 @@ import io.redspace.ironsspellbooks.capabilities.magic.SpellContainer;
 import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
 import io.redspace.ironsspellbooks.spells.lightning.ChainLightningSpell;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -59,6 +65,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.item.armortrim.TrimMaterial;
 import net.minecraft.world.item.armortrim.TrimPattern;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.component.Unbreakable;
@@ -70,13 +77,16 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.item.ItemEvent;
 import net.neoforged.neoforge.event.entity.living.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -84,7 +94,9 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -93,6 +105,8 @@ import static com.bobmowzie.mowziesmobs.server.item.ItemHandler.WROUGHT_HELMET;
 import static com.example.examplemod.ExampleMod.MODID;
 import static com.example.examplemod.component.ModDataComponents.*;
 import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
+import static dev.xkmc.l2archery.init.registrate.ArcheryItems.STARTER_BOW;
+import static fuzs.enderzoology.init.ModRegistry.SOULBOUND_ENCHANTMENT;
 import static io.redspace.ironsspellbooks.registries.ComponentRegistry.SPELL_CONTAINER;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL;
 import static net.minecraft.core.component.DataComponents.FOOD;
@@ -254,6 +268,10 @@ public class Server {
             sword.set(DataComponents.CUSTOM_NAME, Component.literal("Maken Sword"));
             setRarity(sword);
             player.getInventory().add(sword);
+            var recovery_compass=new ItemStack(Items.RECOVERY_COMPASS);
+            recovery_compass.enchant(getHolder(SOULBOUND_ENCHANTMENT,level),6);
+            player.getInventory().add(recovery_compass);
+            var ender_pearl = new ItemStack(Items.ENDER_PEARL,5);
         }
 
         private static ItemStack createStarterArmor(ItemStack armor, String name, Level level) {
@@ -293,6 +311,7 @@ public class Server {
             addRandomArmorTrim(entity);
         }
 
+
         private static void handleWardenSpawn(Warden warden) {
             if (Math.random() < (double) AttributeHelper.getL2HostilityLevel(warden).getAsInt() / 12288) {
                 if (warden.getMainHandItem().has(WAEDREN_BOSS)) return;
@@ -314,18 +333,25 @@ public class Server {
                 if (slot.getType() != EquipmentSlot.Type.HUMANOID_ARMOR) continue;
 
                 ItemStack equippedItem = entity.getItemBySlot(slot);
-                if (!equippedItem.isEmpty() && equippedItem.getItem() instanceof ArmorItem armorItem && !equippedItem.has(DataComponents.TRIM)) {
-                    Holder.Reference<TrimPattern> randomPattern = allPatterns.get(RANDOM.nextInt(allPatterns.size()));
-                    List<Holder.Reference<TrimMaterial>> potentialMaterials = getPotentialMaterials(randomPattern, allMaterials);
-                    final Ingredient repairIngredient = armorItem.getMaterial().value().repairIngredient().get();
+                if (!equippedItem.isEmpty() && equippedItem.getItem() instanceof ArmorItem armorItem ) {
+                    if(!equippedItem.has(DataComponents.TRIM))
+                    {
+                        Holder.Reference<TrimPattern> randomPattern = allPatterns.get(RANDOM.nextInt(allPatterns.size()));
+                        List<Holder.Reference<TrimMaterial>> potentialMaterials = getPotentialMaterials(randomPattern, allMaterials);
+                        final Ingredient repairIngredient = armorItem.getMaterial().value().repairIngredient().get();
 
-                    List<Holder.Reference<TrimMaterial>> validMaterials = potentialMaterials.stream()
-                            .filter(material -> !repairIngredient.test(new ItemStack(material.value().ingredient().value())))
-                            .toList();
+                        List<Holder.Reference<TrimMaterial>> validMaterials = potentialMaterials.stream()
+                                .filter(material -> !repairIngredient.test(new ItemStack(material.value().ingredient().value())))
+                                .toList();
 
-                    if (!validMaterials.isEmpty()) {
-                        Holder.Reference<TrimMaterial> randomMaterial = validMaterials.get(RANDOM.nextInt(validMaterials.size()));
-                        equippedItem.set(DataComponents.TRIM, new ArmorTrim(randomMaterial, randomPattern));
+                        if (!validMaterials.isEmpty()) {
+                            Holder.Reference<TrimMaterial> randomMaterial = validMaterials.get(RANDOM.nextInt(validMaterials.size()));
+                            equippedItem.set(DataComponents.TRIM, new ArmorTrim(randomMaterial, randomPattern));
+                        }
+                    }
+                    if(!equippedItem.has(DataComponents.DYED_COLOR))
+                    {
+                        equippedItem.set(DataComponents.DYED_COLOR,new DyedItemColor((int)(Math.random()*(1<<24)),false));
                     }
                 }
             }
@@ -778,4 +804,9 @@ public static void damage(LivingDamageEvent.Post event) {
 //            ScreenRippleRenderer.startEffect(finalPos);
 //        }
 //    }
+    @SubscribeEvent
+    public static void brush(LivingEntityUseItemEvent.Finish event)
+    {
+
+    }
 }

@@ -139,7 +139,7 @@ public class ClientSetup {
                     int x = slot.x;
                     int y = slot.y;
                     int size = 2;
-                    guiGraphics.fill(x, y, x + size, y + size, 2000, argbColor);
+                    guiGraphics.fill(x, y, x + size, y + size, 0, argbColor);
                 }
             }
         }

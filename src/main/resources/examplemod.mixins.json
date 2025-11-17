@@ -3,18 +3,26 @@
   "package": "com.example.examplemod.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbsorptionMobEffectMixin",
     "AbstractArrowMixin",
     "ChestBlockEntityMixin",
+    "ComfortEffectMixin",
+    "EffectAbyssal_BurnMixin",
+    "EffectMonstrousMixin",
     "EntityTypeBuilderAccessor",
     "EntityTypeMixin",
+    "ExudationEffectMixin",
     "FoodDataMixin",
     "HealOrHarmMobEffectMixin",
     "LootTableMixin",
     "MixinLevel",
     "MixinLivingEntity",
+    "PoisonMobEffectMixin",
     "RangedAttributeMixin",
-    "ReflectionNecklaceItemMixin",
-    "SpellHealEventMixin"
+    "RegenerationMobEffectMixin",
+    "SpellHealEventMixin",
+    "TenacityEffectMixin",
+    "UdumbaraEffectMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -23,7 +31,6 @@
     "requireAnnotations": true
   },
   "client": [
-    "AbstractContainerScreenMixin",
-
+    "AbstractContainerScreenMixin"
   ]
 }
