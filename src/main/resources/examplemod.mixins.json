@@ -5,8 +5,10 @@
   "mixins": [
     "AbsorptionMobEffectMixin",
     "AbstractArrowMixin",
+    "BleedingEffectMixin",
     "ChestBlockEntityMixin",
     "ComfortEffectMixin",
+    "DetonationEffectMixin",
     "EffectAbyssal_BurnMixin",
     "EffectMonstrousMixin",
     "EntityTypeBuilderAccessor",
@@ -17,6 +19,7 @@
     "LootTableMixin",
     "MixinLevel",
     "MixinLivingEntity",
+    "PlayerMixin",
     "PoisonMobEffectMixin",
     "RangedAttributeMixin",
     "RegenerationMobEffectMixin",

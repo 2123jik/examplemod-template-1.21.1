@@ -3,6 +3,7 @@ package com.example.examplemod;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
 import com.example.examplemod.network.ServerboundOpenBlockInHandMessage;
+import com.example.examplemod.recipe.ModRecipes;
 import com.example.examplemod.register.ModEntities;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.network.v3.NetworkHandler;
@@ -41,6 +42,7 @@ public class ExampleMod{
         CREATIVE_MODE_TABS.register(modEventBus);
         ModEffects.MOB_EFFECTS.register(modEventBus);
         NeoForge.EVENT_BUS.register(this);
+        ModRecipes.register(modEventBus);
         ModDataComponents.register(modEventBus);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
         ModConstructor.construct(MODID, () -> new ModConstructor() {

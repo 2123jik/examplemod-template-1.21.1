@@ -3,6 +3,7 @@ package com.example.examplemod.server;
 import com.example.examplemod.accessors.SpellHealEventAccessor;
 import com.example.examplemod.capability.IEatenFoods;
 import com.example.examplemod.capability.ModCapabilities;
+import com.example.examplemod.component.SpellBonusData;
 import com.example.examplemod.server.effect.MakenPowerEffect;
 import com.example.examplemod.util.AttributeHelper;
 import com.google.common.collect.ImmutableMap;
@@ -22,6 +23,8 @@ import dev.xkmc.l2hostility.events.HostilityInitEvent;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import dev.xkmc.modulargolems.content.entity.common.AbstractGolemEntity;
 import fuzs.enderzoology.EnderZoology;
+import io.redspace.ironsspellbooks.IronsSpellbooks;
+import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
 import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
@@ -50,6 +53,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -82,6 +86,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
@@ -93,6 +98,9 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotResult;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.awt.*;
 import java.util.*;
@@ -105,8 +113,10 @@ import static com.bobmowzie.mowziesmobs.server.item.ItemHandler.WROUGHT_HELMET;
 import static com.example.examplemod.ExampleMod.MODID;
 import static com.example.examplemod.component.ModDataComponents.*;
 import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
+import static dev.shadowsoffire.apothic_attributes.api.ALObjects.DamageTypes.*;
 import static dev.xkmc.l2archery.init.registrate.ArcheryItems.STARTER_BOW;
 import static fuzs.enderzoology.init.ModRegistry.SOULBOUND_ENCHANTMENT;
+import static io.redspace.ironsspellbooks.damage.ISSDamageTypes.*;
 import static io.redspace.ironsspellbooks.registries.ComponentRegistry.SPELL_CONTAINER;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL;
 import static net.minecraft.core.component.DataComponents.FOOD;
@@ -737,54 +747,6 @@ public class Server {
         return critEvent.getDamageMultiplier();
     }
 
-@SubscribeEvent
-public static void damage(LivingDamageEvent.Post event) {
-        if(event.getEntity() instanceof Zombie zombie){
-            if(event.getSource().getEntity() instanceof Player player){
-                simulateAndTriggerMeleeAffixes(player,zombie);
-            }
-        }
-}
-    public static void simulateAndTriggerMeleeAffixes(Player player, LivingEntity target) {
-        // 确保在服务器端执行
-        if (player.level().isClientSide()) {
-            return;
-        }
-
-        System.out.println("开始模拟触发近战词缀...");
-
-        // --- 步骤 1: 遍历玩家所有装备，找到所有词缀 ---
-        // getAllSlots() 包括主手、副手、盔甲。
-        for (ItemStack stack : player.getAllSlots()) {
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            // 使用 AffixHelper 获取这件物品上的所有词缀实例
-            for (AffixInstance inst : AffixHelper.getAffixes(stack).values()) {
-                if (!inst.isValid()) {
-                    continue;
-                }
-
-                // 获取词缀的核心逻辑对象
-                Affix affix = inst.getAffix();
-
-                // --- 步骤 2: 手动调用 "攻击后" 的钩子方法 ---
-                // 这会触发所有实现了 doPostAttack 的词缀，
-                // 包括 Apotheosis 原版的和 irons_apothic 的 SpellTriggerAffix (当 trigger 为 MELEE_HIT 时)。
-                try {
-                    System.out.println(String.format("在物品 %s 上，为词缀 %s 调用 doPostAttack...", stack.getDisplayName().getString(), affix.id()));
-//                    affix.doPostAttack(inst, player, target);
-                } catch (Exception e) {
-                    // 捕获异常，防止一个词缀的错误影响其他词缀的测试
-                    System.err.println(String.format("调用词缀 %s 的 doPostAttack 时出错: %s", affix.id(), e.getMessage()));
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        System.out.println("近战词缀模拟触发完毕。");
-    }
 //    // EntityJoinLevelEvent 是一个更可靠的捕捉实体在世界中“出现”的事件
 //    @SubscribeEvent
 //    public static void onEntityJoinWorld(EntityJoinLevelEvent event) {
@@ -804,9 +766,112 @@ public static void damage(LivingDamageEvent.Post event) {
 //            ScreenRippleRenderer.startEffect(finalPos);
 //        }
 //    }
-    @SubscribeEvent
-    public static void brush(LivingEntityUseItemEvent.Finish event)
-    {
+@SubscribeEvent
+public static void onPreDamage(LivingDamageEvent.Pre event) {
+    if (event.getEntity().level().isClientSide()) {
+        return;
+    }
+    DamageSource originalSource = event.getSource();
 
+    if (originalSource.is(FIRE_DAMAGE)) {
+        event.setNewDamage(0);
+        DamageSource newSource = new DamageSource(
+                event.getEntity().level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(FIRE_MAGIC),
+                originalSource.getDirectEntity(),
+                originalSource.getEntity()
+        );
+
+        event.getEntity().hurt(newSource, event.getOriginalDamage());
+    }
+    if (originalSource.is(COLD_DAMAGE)) {
+        event.setNewDamage(0);
+        DamageSource newSource = new DamageSource(
+                event.getEntity().level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(ICE_MAGIC),
+                originalSource.getDirectEntity(),
+                originalSource.getEntity()
+        );
+
+        event.getEntity().hurt(newSource, event.getOriginalDamage());
+    }
+    if (originalSource.is(CURRENT_HP_DAMAGE)) {
+        event.setNewDamage(0);
+        DamageSource newSource = new DamageSource(
+                event.getEntity().level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(ELDRITCH_MAGIC),
+                originalSource.getDirectEntity(),
+                originalSource.getEntity()
+        );
+
+        event.getEntity().hurt(newSource, event.getOriginalDamage());
+    }
+
+}
+    @SubscribeEvent
+    public static void onSpellCast(ModifySpellLevelEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (entity == null) {
+            return;
+        }
+
+        ResourceLocation spellId = event.getSpell().getSpellResource();
+        SchoolType schoolType = event.getSpell().getSchoolType();
+        int totalBonus = 0;
+
+        // 1. 检测主手和副手
+        totalBonus += getBonusFromStack(entity.getMainHandItem(), spellId, schoolType);
+        totalBonus += getBonusFromStack(entity.getOffhandItem(), spellId, schoolType);
+
+        // 2. 检测护甲槽
+        for (ItemStack armorStack : entity.getArmorSlots()) {
+            totalBonus += getBonusFromStack(armorStack, spellId, schoolType);
+        }
+
+        // 3. 检测 Curios API 饰品槽 (已修正)
+        totalBonus += getBonusFromCurios(entity, spellId, schoolType);
+
+        if (totalBonus > 0) {
+            event.setLevel(event.getLevel() + totalBonus);
+        }
+    }
+
+    /**
+     * 辅助方法：从单个 ItemStack 计算法术加成。 (此方法不变)
+     */
+    private static int getBonusFromStack(ItemStack stack, ResourceLocation spellId, SchoolType schoolType) {
+        if (stack != null && !stack.isEmpty() && stack.has(SPELL_BONUSES)) {
+            SpellBonusData bonusData = stack.get(SPELL_BONUSES);
+            if (bonusData != null) {
+                return bonusData.getTotalBonusFor(spellId, schoolType);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 【已修正】辅助方法：检查所有 Curios 槽位并返回总加成。
+     */
+    private static int getBonusFromCurios(LivingEntity entity, ResourceLocation spellId, SchoolType schoolType) {
+        // 检查 Curios 模组是否已加载
+        if (ModList.get().isLoaded("curios")) {
+            // CuriosApi.getCuriosInventory 返回 Optional<ICuriosItemHandler>
+            Optional<ICuriosItemHandler> inventoryOptional = CuriosApi.getCuriosInventory(entity);
+
+            if (inventoryOptional.isPresent()) {
+                ICuriosItemHandler inventory = inventoryOptional.get();
+                int curiosBonus = 0;
+
+                // 【正确用法】使用 findCurios 方法获取所有已装备的饰品。
+                // 我们传入一个始终为 true 的断言 (predicate)，来匹配所有物品。
+                List<SlotResult> equippedCurios = inventory.findCurios(stack -> true);
+
+                for (SlotResult slotResult : equippedCurios) {
+                    // 从每个 SlotResult 中获取 ItemStack，并计算加成
+                    curiosBonus += getBonusFromStack(slotResult.stack(), spellId, schoolType);
+                }
+                return curiosBonus;
+            }
+        }
+
+        // 如果 Curios 未安装或实体没有饰品栏，返回0
+        return 0;
     }
 }

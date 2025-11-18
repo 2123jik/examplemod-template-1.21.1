@@ -33,6 +33,11 @@ public class ModDataComponents {
     private static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> register(String name, UnaryOperator<DataComponentType.Builder<T>> builderOperator) {
         return DATA_COMPONENT_TYPES.register(name, () -> builderOperator.apply(DataComponentType.builder()).build());
     }
+    public static final java.util.function.Supplier<DataComponentType<SpellBonusData>> SPELL_BONUSES =
+            register("spell_bonuses",builder -> builder
+                            .persistent(SpellBonusData.CODEC)
+                            .networkSynchronized(ByteBufCodecs.fromCodec(SpellBonusData.CODEC))
+                            );
 
     public static void register(IEventBus eventBus) {
         DATA_COMPONENT_TYPES.register(eventBus);
