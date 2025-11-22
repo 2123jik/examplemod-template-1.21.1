@@ -8,22 +8,17 @@ import com.example.examplemod.server.effect.MakenPowerEffect;
 import com.example.examplemod.util.AttributeHelper;
 import com.google.common.collect.ImmutableMap;
 import dev.shadowsoffire.apotheosis.Apotheosis;
-import dev.shadowsoffire.apotheosis.affix.Affix;
 import dev.shadowsoffire.apotheosis.affix.AffixHelper;
-import dev.shadowsoffire.apotheosis.affix.AffixInstance;
 import dev.shadowsoffire.apotheosis.loot.LootRarity;
 import dev.shadowsoffire.apotheosis.loot.RarityRegistry;
 import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.apothic_attributes.payload.CritParticlePayload;
 import dev.shadowsoffire.placebo.events.AnvilLandEvent;
-import dev.xkmc.l2archery.init.registrate.ArcheryItems;
 import dev.xkmc.l2core.capability.attachment.GeneralCapabilityHolder;
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
 import dev.xkmc.l2hostility.events.HostilityInitEvent;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import dev.xkmc.modulargolems.content.entity.common.AbstractGolemEntity;
-import fuzs.enderzoology.EnderZoology;
-import io.redspace.ironsspellbooks.IronsSpellbooks;
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
 import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
@@ -40,9 +35,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -51,9 +43,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.StructureTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -62,7 +54,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Skeleton;
-import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -81,9 +72,8 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
@@ -91,7 +81,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.item.ItemEvent;
 import net.neoforged.neoforge.event.entity.living.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -114,7 +103,6 @@ import static com.example.examplemod.ExampleMod.MODID;
 import static com.example.examplemod.component.ModDataComponents.*;
 import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
 import static dev.shadowsoffire.apothic_attributes.api.ALObjects.DamageTypes.*;
-import static dev.xkmc.l2archery.init.registrate.ArcheryItems.STARTER_BOW;
 import static fuzs.enderzoology.init.ModRegistry.SOULBOUND_ENCHANTMENT;
 import static io.redspace.ironsspellbooks.damage.ISSDamageTypes.*;
 import static io.redspace.ironsspellbooks.registries.ComponentRegistry.SPELL_CONTAINER;
@@ -216,10 +204,30 @@ public class Server {
             if (event.getEntity().level().isClientSide()) return;
 
             Player player = event.getEntity();
+            ServerLevel level = (ServerLevel) player.level();
             CompoundTag forgeData = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
             if (!forgeData.getBoolean("hasLoggedInBefore")) {
                 player.sendSystemMessage(Component.literal("§eWelcome to this world! §aA starter gift has been placed in your inventory."));
                 givePlayerStarterGear(player);
+
+                BlockPos nearestMapStructure = level.findNearestMapStructure(StructureTags.VILLAGE, player.getOnPos(), 5000, false);
+
+                if (nearestMapStructure != null) {
+                    int x = nearestMapStructure.getX();
+                    int z = nearestMapStructure.getZ();
+                    level.getChunk(x, z);
+
+                    int maxY = level.getMaxBuildHeight();
+                    int minY = level.getMinBuildHeight();
+
+                    BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos(x, maxY, z);
+
+                    while (targetPos.getY() > minY && level.getBlockState(targetPos).isAir()) {
+                        targetPos.move(Direction.DOWN);
+                    }
+
+                    player.teleportTo(x, targetPos.getY() + 1, z);
+                }
                 forgeData.putBoolean("hasLoggedInBefore", true);
                 player.getPersistentData().put(Player.PERSISTED_NBT_TAG, forgeData);
             }
@@ -356,7 +364,7 @@ public class Server {
 
                         if (!validMaterials.isEmpty()) {
                             Holder.Reference<TrimMaterial> randomMaterial = validMaterials.get(RANDOM.nextInt(validMaterials.size()));
-                            equippedItem.set(DataComponents.TRIM, new ArmorTrim(randomMaterial, randomPattern));
+                            equippedItem.set(DataComponents.TRIM, new ArmorTrim(randomMaterial, randomPattern).withTooltip(false));
                         }
                     }
                     if(!equippedItem.has(DataComponents.DYED_COLOR))
@@ -458,13 +466,11 @@ public class Server {
             LivingEntity deadEntity = event.getEntity();
             DamageSource source = event.getSource();
 
-            // 玩家死亡时的逻辑
             if (deadEntity instanceof Player player) {
                 player.sendSystemMessage(Component.literal("Death Position: " + player.position().toString()));
                 handlePlayerDeathWithMakenSword(player);
             }
 
-            // 骷髅特殊掉落
             if (deadEntity instanceof Skeleton && deadEntity.hasEffect(LEVITATION) && Math.abs(Math.abs(deadEntity.getXRot()) - 180) < 45) {
                 handleLevitatingSkeletonDeath(deadEntity);
             }

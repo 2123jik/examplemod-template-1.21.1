@@ -1,19 +1,9 @@
 package com.example.examplemod;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import it.hurts.sskirillss.relics.components.DataComponent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.config.ModConfigEvent;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class Config {

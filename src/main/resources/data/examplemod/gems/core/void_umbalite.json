@@ -1,0 +1,101 @@
+{
+  "type": "apotheosis:gem",
+  "min_purity": "cracked",
+  "unique": false,
+  "weights": {
+    "weight": 5,
+    "quality": 2
+  },
+  "bonuses": [
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "magic_gear",
+        "types": [
+          "examplemod:staff",
+          "examplemod:spellbook"
+        ]
+      },
+      "attribute": "irons_spellbooks:ender_spell_power",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.04,
+        "chipped": 0.08,
+        "flawed": 0.12,
+        "normal": 0.16,
+        "flawless": 0.2,
+        "perfect": 0.25
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "melee_weapon",
+        "types": [
+          "apotheosis:melee_weapon"
+        ]
+      },
+      "attribute": "irons_spellbooks:ender_magic_resist",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.025,
+        "chipped": 0.05,
+        "flawed": 0.1,
+        "normal": 0.125,
+        "flawless": 0.15,
+        "perfect": 0.2
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "helmet",
+        "types": [
+          "apotheosis:helmet"
+        ]
+      },
+      "attribute": "irons_spellbooks:max_mana",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.03,
+        "chipped": 0.045,
+        "flawed": 0.06,
+        "normal": 0.09,
+        "flawless": 0.12,
+        "perfect": 0.15
+      }
+    },
+    {
+      "type": "apotheosis:damage_reduction",
+      "gem_class": {
+        "key": "core_armor",
+        "types": [
+          "apotheosis:chestplate",
+          "apotheosis:leggings"
+        ]
+      },
+      "damage_type": "magic",
+      "values": {
+        "cracked": 0.0125,
+        "chipped": 0.02,
+        "flawed": 0.04,
+        "normal": 0.06,
+        "flawless": 0.08,
+        "perfect": 0.1
+      }
+    },
+    {
+      "type": "apotheosis:mob_effect",
+      "gem_class": { "key": "boots", "types": ["apotheosis:boots"] },
+      "mob_effect": "irons_spellbooks:evasion",
+      "target": "hurt_self",
+      "operation": "ADD_VALUE",
+      "values": {
+        "flawed":   { "duration": 10, "amplifier": 0, "cooldown": 600 },
+        "normal":   { "duration": 10, "amplifier": 0, "cooldown": 550 },
+        "flawless": { "duration": 10, "amplifier": 0, "cooldown": 500 },
+        "perfect":  { "duration": 10, "amplifier": 1, "cooldown": 450 }
+       }
+    }
+  ]
+}

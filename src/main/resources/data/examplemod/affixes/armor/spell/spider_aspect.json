@@ -1,0 +1,46 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 10,
+      "quality": 0.5
+    },
+    "exclusive_set": []
+  },
+  "spell": "irons_spellbooks:spider_aspect",
+  "trigger": "HURT",
+  "target": "SELF",
+  "values": {
+    "apotheosis:rare": {
+      "level": {
+        "min": 0,
+        "steps": 3,
+        "step": 1
+      },
+      "cooldown": 1100
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 2,
+        "steps": 3,
+        "step": 1
+      },
+      "cooldown": 1000
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 2,
+        "steps": 4,
+        "step": 1
+      },
+      "cooldown": 900
+    }
+  },
+  "types": [
+    "apotheosis:helmet",
+    "apotheosis:chestplate",
+    "apotheosis:leggings",
+    "apotheosis:boots"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 12,
+      "quality": 0.45
+    },
+    "exclusive_set": []
+  },
+  "spell": "irons_spellbooks:ice_tomb",
+  "trigger": "HURT",
+  "target": "SELF",
+  "values": {
+    "apotheosis:rare": {
+      "level": {
+        "min": 1,
+        "steps": 1,
+        "step": 2
+      },
+      "cooldown": 400
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 1,
+        "steps": 1,
+        "step": 3
+      },
+      "cooldown": 300
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 2,
+        "steps": 1,
+        "step": 4
+      },
+      "cooldown": 300
+    }
+  },
+  "types": [
+    "apotheosis:helmet",
+    "apotheosis:chestplate",
+    "apotheosis:leggings",
+    "apotheosis:boots"
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "type": "apotheosis:gem",
+  "min_purity": "cracked",
+  "unique": false,
+  "weights": {
+    "weight": 5,
+    "quality": 2
+  },
+  "bonuses": [
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "magic_gear",
+        "types": [
+          "examplemod:staff",
+          "examplemod:spellbook"
+        ]
+      },
+      "attribute": "irons_spellbooks:holy_spell_power",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.04,
+        "chipped": 0.08,
+        "flawed": 0.12,
+        "normal": 0.16,
+        "flawless": 0.2,
+        "perfect": 0.25
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "melee_weapon",
+        "types": [
+          "apotheosis:melee_weapon"
+        ]
+      },
+      "attribute": "irons_spellbooks:holy_magic_resist",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.025,
+        "chipped": 0.05,
+        "flawed": 0.1,
+        "normal": 0.125,
+        "flawless": 0.15,
+        "perfect": 0.2
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "helmet",
+        "types": [
+          "apotheosis:helmet"
+        ]
+      },
+      "attribute": "apothic_attributes:healing_received",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.01,
+        "chipped": 0.02,
+        "flawed": 0.04,
+        "normal": 0.06,
+        "flawless": 0.08,
+        "perfect": 0.1
+      }
+    },
+    {
+      "type": "apotheosis:mob_effect",
+      "gem_class": {
+        "key": "core_armor",
+        "types": [
+          "apotheosis:chestplate",
+          "apotheosis:leggings"
+        ]
+      },
+      "mob_effect": "apothic_attributes:vitality",
+      "target": "hurt_self",
+      "operation": "ADD_VALUE",
+      "values": {
+        "cracked": {
+          "duration": 40,
+          "amplifier": 0,
+          "cooldown": 120
+        },
+        "chipped": {
+          "duration": 80,
+          "amplifier": 0,
+          "cooldown": 120
+        },
+        "flawed": {
+          "duration": 80,
+          "amplifier": 0,
+          "cooldown": 120
+        },
+        "normal": {
+          "duration": 100,
+          "amplifier": 1,
+          "cooldown": 120
+        },
+        "flawless": {
+          "duration": 100,
+          "amplifier": 1,
+          "cooldown": 120
+        },
+        "perfect": {
+          "duration": 140,
+          "amplifier": 1,
+          "cooldown": 120
+        }
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": { "key": "boots", "types": ["apotheosis:boots"] },
+      "attribute": "apothic_attributes:ghost_health",
+      "operation": "ADD_VALUE",
+      "values": { "cracked": 1.0, "chipped": 1.5, "flawed": 2.0, "normal": 2.5, "flawless": 3.0, "perfect": 4.0 }
+    }
+  ]
+}

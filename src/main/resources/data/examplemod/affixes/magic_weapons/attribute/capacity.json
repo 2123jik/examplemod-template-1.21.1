@@ -1,0 +1,44 @@
+{
+  "type": "apotheosis:attribute",
+  "definition": {
+    "affix_type": "stat",
+    "weights": {
+      "weight": 25,
+      "quality": 0.1
+    },
+    "exclusive_set": []
+  },
+  "attribute": "irons_spellbooks:max_mana",
+  "operation": "ADD_VALUE",
+  "values": {
+    "apotheosis:common": {
+      "min": 25,
+      "steps": 1,
+      "step": 25
+    },
+    "apotheosis:uncommon": {
+      "min": 50,
+      "steps": 2,
+      "step": 25
+    },
+    "apotheosis:rare": {
+      "min": 75,
+      "steps": 3,
+      "step": 25
+    },
+    "apotheosis:epic": {
+      "min": 100,
+      "steps": 3,
+      "step": 25
+    },
+    "apotheosis:mythic": {
+      "min": 125,
+      "steps": 3,
+      "step": 25
+    }
+  },
+  "categories": [
+    "examplemod:staff",
+    "examplemod:spellbook"
+  ]
+}

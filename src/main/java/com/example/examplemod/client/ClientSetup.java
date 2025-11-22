@@ -1,9 +1,13 @@
 package com.example.examplemod.client;
 
 import com.example.examplemod.ExampleMod;
+import com.example.examplemod.client.entity.GoldenGateRenderer;
+import com.example.examplemod.client.entity.SwordProjectileRenderer;
+import com.example.examplemod.client.gui.OffsetConfigScreen;
+
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
-import com.example.examplemod.util.EuclideanSpace;
+import com.example.examplemod.register.ModEntities;
 import com.example.examplemod.util.TargetDetector;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -49,9 +53,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.*;
@@ -74,8 +76,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -88,6 +88,7 @@ import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.common.BooleanAttribute;
 import net.neoforged.neoforge.common.extensions.IAttributeExtension;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.joml.Vector2ic;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
@@ -99,8 +100,8 @@ import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static com.example.examplemod.client.ClientSetup.Test.*;
 import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
+import static com.example.examplemod.register.ModEntities.GOLDENGATEENTITY;
 import static net.minecraft.client.renderer.LightTexture.FULL_BRIGHT;
 import static net.minecraft.world.item.Items.LIGHTNING_ROD;
 import static net.minecraft.world.item.Items.TNT;
@@ -113,6 +114,31 @@ public class ClientSetup {
             GLFW.GLFW_KEY_I, // 默认按键 (这里是 'I' 键)
             "key.categories.yourmod" // 按键分类的翻译键
     );
+    public static final KeyMapping OPEN_CONFIG_KEY = new KeyMapping(
+            "key.examplemod.open_render_config",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_K, // 默认按 K 键
+            "key.categories.misc"
+    );
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        if (true) {
+            while (OPEN_CONFIG_KEY.consumeClick()) {
+                // 打开我们刚才写的 GUI
+                Minecraft.getInstance().setScreen(new OffsetConfigScreen());
+
+            }
+        }
+    }
+    @SubscribeEvent
+    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        // 注册你的传送门实体渲染器
+        event.registerEntityRenderer(GOLDENGATEENTITY.get(), GoldenGateRenderer::new);
+        event.registerEntityRenderer(ModEntities.SWORD_PROJECTILE.get(), SwordProjectileRenderer::new);
+        // 如果你的法术还会召唤其他实体（如 UnstableWeaponEntity），也必须在这里注册！
+        // 例如:
+        // event.registerEntityRenderer(EntityRegistry.UNSTABLE_SWORD.get(), UnstableWeaponRenderer::new);
+    }
     @SubscribeEvent
     public static void regkey(RegisterKeyMappingsEvent event)
     {
@@ -132,7 +158,7 @@ public class ClientSetup {
                     int x = slot.x;
                     int y = slot.y;
                     int size = 2;
-                    guiGraphics.fill(x, y, x + size, y + size, 2000, argbColor);
+                    guiGraphics.fill(x, y, x + size, y + size, 0, argbColor);
                 }
                 if (slot.hasItem() && slot.getItem().has(Apoth.Components.PURITY)) {
                     int argbColor = slot.getItem().get(Apoth.Components.PURITY).getColor().getValue();
@@ -828,7 +854,7 @@ public class ClientSetup {
 
                     Minecraft.getInstance().getItemRenderer().renderStatic(
                             curioToRender,
-                            ItemDisplayContext.HEAD,
+                            ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
                             packedLight,
                             OverlayTexture.NO_OVERLAY,
                             poseStack,
@@ -1288,4 +1314,46 @@ public class ClientSetup {
 //        // 在模拟范围内没有找到任何满足条件的点
 //        return Optional.empty();
 //    }
+    private static final int MERGE_LENGTH_THRESHOLD = 6;
+
+//    @SubscribeEvent
+    public static void onItemTooltip(ItemTooltipEvent event) {
+        List<Component> tooltip = event.getToolTip();
+
+        mergeConsecutiveShortLines(tooltip);
+    }
+
+    private static void mergeConsecutiveShortLines(List<Component> tooltipLines) {
+        if (tooltipLines.isEmpty()) return;
+        List<Component> newTooltip = new ArrayList<>();
+        int i = 0;
+        while (i < tooltipLines.size()) {
+            List<Component> shortLineSequence = new ArrayList<>();
+            int j = i;
+            while (j < tooltipLines.size()) {
+                Component lineToCheck = tooltipLines.get(j);
+                String text = lineToCheck.getString();
+                if (!text.trim().isEmpty() && text.length() < MERGE_LENGTH_THRESHOLD) {
+                    shortLineSequence.add(lineToCheck);
+                    j++;
+                } else {
+                    break;
+                }
+            }
+            if (shortLineSequence.size() > 1) {
+                MutableComponent mergedLine = Component.empty();
+                for (int k = 0; k < shortLineSequence.size(); k++) {
+                    mergedLine.append(shortLineSequence.get(k));
+                }
+                newTooltip.add(mergedLine);
+                i = j;
+            } else {
+                newTooltip.add(tooltipLines.get(i));
+                i++;
+            }
+        }
+        tooltipLines.clear();
+        tooltipLines.addAll(newTooltip);
+    }
+
 }

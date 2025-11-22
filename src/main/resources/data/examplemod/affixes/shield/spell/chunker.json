@@ -1,0 +1,43 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 18,
+      "quality": 0.3
+    },
+    "exclusive_set": []
+  },
+  "spell": "gtbcs_geomancy_plus:chunker",
+  "trigger": "SHIELD",
+  "target": "target",
+  "values": {
+    "apotheosis:rare": {
+      "level": {
+        "min": 1,
+        "steps": 3,
+        "step": 1
+      },
+      "cooldown": 240
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 1,
+        "steps": 4,
+        "step": 1
+      },
+      "cooldown": 230
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 1,
+        "steps": 5,
+        "step": 1
+      },
+      "cooldown": 220
+    }
+  },
+  "types": [
+    "apotheosis:shield"
+  ]
+}

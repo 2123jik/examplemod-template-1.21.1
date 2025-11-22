@@ -1,0 +1,43 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 18,
+      "quality": 0.3
+    },
+    "exclusive_set": []
+  },
+  "spell": "gtbcs_geomancy_plus:tremor_step",
+  "trigger": "SPELL_HEAL",
+  "target": "TARGET",
+  "values": {
+    "apotheosis:rare": {
+      "level": {
+        "min": 1,
+        "steps": 1,
+        "step": 1
+      },
+      "cooldown": 1000
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 1,
+        "steps": 2,
+        "step": 1
+      },
+      "cooldown": 900
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 1,
+        "steps": 3,
+        "step": 1
+      },
+      "cooldown": 800
+    }
+  },
+  "types": [
+    "apotheosis:boots"
+  ]
+}

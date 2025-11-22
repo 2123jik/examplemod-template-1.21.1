@@ -1,0 +1,38 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 10,
+      "quality": 0.5
+    },
+    "exclusive_set": []
+  },
+  "spell": "irons_spellbooks:shockwave",
+  "trigger": "HURT",
+  "target": "TARGET",
+  "values": {
+    "apotheosis:epic": {
+      "level": {
+        "min": 2,
+        "steps": 2,
+        "step": 1
+      },
+      "cooldown": 300
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 2,
+        "steps": 4,
+        "step": 1
+      },
+      "cooldown": 300
+    }
+  },
+  "types": [
+    "apotheosis:helmet",
+    "apotheosis:chestplate",
+    "apotheosis:leggings",
+    "apotheosis:boots"
+  ]
+}

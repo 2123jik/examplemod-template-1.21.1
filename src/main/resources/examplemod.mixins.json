@@ -16,9 +16,12 @@
     "ExudationEffectMixin",
     "FoodDataMixin",
     "HealOrHarmMobEffectMixin",
+    "IABoss_monsterMixin",
+    "LLibraryBossMonsterMixin",
     "LootTableMixin",
     "MixinLevel",
     "MixinLivingEntity",
+    "MixinLootController",
     "PlayerMixin",
     "PoisonMobEffectMixin",
     "RangedAttributeMixin",
@@ -34,6 +37,11 @@
     "requireAnnotations": true
   },
   "client": [
-    "AbstractContainerScreenMixin"
+    "AbstractContainerScreenMixin",
+    "InventoryScreenMixin",
+    "ItemTipRenderMixin",
+    "MutableSpriteSetMixin",
+    "ParticleAccessor",
+    "ParticleEngineMixin"
   ]
 }

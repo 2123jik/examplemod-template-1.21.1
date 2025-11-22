@@ -115,7 +115,7 @@ configurations {
 }
 
 dependencies {
-   implementation fileTree(dir: 'C:/Users/lyj/AppData/Roaming/PrismLauncher/instances/modpack/minecraft/mods',
+   implementation fileTree(dir: 'C:/Users/lyj/Saved Games/mc/.minecraft/versions/1.21.1-NeoForge_21.1.215/mods',
            include: ['*.jar'],exclude: ['ProbeJS-7.7.2.jar', 'kubejs-neoforge-2101.7.2-build.321.jar','rhino-2101.2.7-build.81.jar'])
 
     // Example optional mod dependency with JEI

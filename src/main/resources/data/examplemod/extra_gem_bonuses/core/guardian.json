@@ -1,0 +1,38 @@
+{
+    "type": "apotheosis:extra_gem_bonus",
+    "gem": "apotheosis:core/guardian",
+    "bonuses": [
+        {
+            "type": "apotheosis:multi_attribute",
+            "desc": "bonus.apotheosis:multi_attr.desc.and",
+            "gem_class": {
+                "key": "staff",
+                "types": [
+                    "examplemod:staff"
+                ]
+            },
+            "modifiers": [
+                {
+                    "attribute": "irons_spellbooks:holy_spell_power",
+                    "operation": "add_multiplied_base",
+                    "values": {
+                        "flawed": 0.05,
+                        "normal": 0.10,
+                        "flawless": 0.15,
+                        "perfect": 0.20
+                    }
+                },
+                {
+                    "attribute": "irons_spellbooks:spell_resist",
+                    "operation": "add_multiplied_base",
+                    "values": {
+                        "flawed": 0.01,
+                        "normal": 0.02,
+                        "flawless": 0.03,
+                        "perfect": 0.05
+                    }
+                }
+            ]
+        }
+    ]
+} 

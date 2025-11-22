@@ -1,0 +1,96 @@
+{
+  "type": "apotheosis:gem",
+  "min_purity": "cracked",
+  "unique": false,
+  "weights": {
+    "weight": 5,
+    "quality": 2
+  },
+  "bonuses": [
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "magic_gear",
+        "types": [
+          "examplemod:staff",
+          "examplemod:spellbook"
+        ]
+      },
+      "attribute": "irons_spellbooks:spell_power",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.01,
+        "chipped": 0.02,
+        "flawed": 0.04,
+        "normal": 0.06,
+        "flawless": 0.08,
+        "perfect": 0.1
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "melee_weapon",
+        "types": [
+          "apotheosis:melee_weapon"
+        ]
+      },
+      "attribute": "irons_spellbooks:spell_resist",
+      "operation": "ADD_MULTIPLIED_BASE",
+      "values": {
+        "cracked": 0.01,
+        "chipped": 0.02,
+        "flawed": 0.03,
+        "normal": 0.045,
+        "flawless": 0.06,
+        "perfect": 0.08
+      }
+    },
+    {
+      "type": "apotheosis:enchantment",
+      "gem_class": "apotheosis:breaker",
+      "enchantment": "unbreaking",
+      "values": {
+        "flawed": 1,
+        "normal": 1,
+        "flawless": 2,
+        "perfect": 3
+      }
+    },
+    {
+      "type": "apotheosis:attribute",
+      "gem_class": {
+        "key": "core_armor",
+        "types": [
+          "apotheosis:chestplate",
+          "apotheosis:leggings"
+        ]
+      },
+      "attribute": "minecraft:generic.knockback_resistance",
+      "operation": "ADD_VALUE",
+      "values": {
+        "cracked": 0.05,
+        "chipped": 0.1,
+        "flawed": 0.15,
+        "normal": 0.2,
+        "flawless": 0.25,
+        "perfect": 0.3
+      }
+    },
+    {
+      "type": "apotheosis:mob_effect",
+      "gem_class": { "key": "helmet", "types": ["apotheosis:helmet"] },
+      "mob_effect": "irons_spellbooks:oakskin",
+      "target": "hurt_self",
+      "operation": "ADD_VALUE",
+      "values": {
+        "cracked":  { "duration": 100, "amplifier": 0, "cooldown": 300 },
+        "chipped":  { "duration": 120, "amplifier": 0, "cooldown": 300 },
+        "flawed":   { "duration": 140, "amplifier": 0, "cooldown": 300 },
+        "normal":   { "duration": 160, "amplifier": 1, "cooldown": 300 },
+        "flawless": { "duration": 180, "amplifier": 1, "cooldown": 300 },
+        "perfect":  { "duration": 200, "amplifier": 1, "cooldown": 300 }
+      }
+    }
+  ]
+}

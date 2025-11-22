@@ -1,13 +1,21 @@
 package com.example.examplemod;
 
+import com.example.examplemod.affix.*;
+import com.example.examplemod.category.LootCategories;
+import com.example.examplemod.category.SlotGroups;
+import com.example.examplemod.client.gui.InventoryModelRenderer;
+import com.example.examplemod.command.IronsApothicCommands;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
 import com.example.examplemod.network.ServerboundOpenBlockInHandMessage;
 import com.example.examplemod.recipe.ModRecipes;
 import com.example.examplemod.register.ModEntities;
+import com.example.examplemod.spells.SpellRegistries;
+import dev.shadowsoffire.apotheosis.affix.AffixRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.network.v3.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -39,11 +47,16 @@ public class ExampleMod{
     public ExampleMod(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
         ModEntities.register(modEventBus);
+        SlotGroups.register(modEventBus);
+        LootCategories.register(modEventBus);
+        AffixEventHandler.register();
         CREATIVE_MODE_TABS.register(modEventBus);
         ModEffects.MOB_EFFECTS.register(modEventBus);
         NeoForge.EVENT_BUS.register(this);
         ModRecipes.register(modEventBus);
+        SpellRegistries.register(modEventBus);
         ModDataComponents.register(modEventBus);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryModelRenderer.ClientConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
         ModConstructor.construct(MODID, () -> new ModConstructor() {
             @Override
@@ -53,8 +66,12 @@ public class ExampleMod{
 
     private void commonSetup(FMLCommonSetupEvent event) {
         LOGGER.info("HELLO FROM COMMON SETUP");
-
-
+        AffixRegistry.INSTANCE.registerCodec(loc("attribute"), SchoolAttributeAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(loc("spell_effect"), SpellEffectAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(loc("magic_telepathic"), MagicTelepathicAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(loc("spell_level"), SpellLevelAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(loc("spell_trigger"), SpellTriggerAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(loc("mana_cost"), ManaCostAffix.CODEC);
         Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
     }
 
@@ -62,5 +79,11 @@ public class ExampleMod{
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("HELLO from server starting");
     }
-
+    public static ResourceLocation loc(String id) {
+        return ResourceLocation.fromNamespaceAndPath("examplemod", id);
+    }
+    private void registerCommands(RegisterCommandsEvent event) {
+        IronsApothicCommands.register(event.getDispatcher());
+        LOGGER.info("Commands registered.");
+    }
 }

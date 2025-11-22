@@ -1,0 +1,44 @@
+{
+    "type": "apotheosis:extra_gem_bonus",
+    "gem": "apotheosis:core/ballast",
+    "bonuses": [
+        {
+            "type": "apotheosis:attribute",
+            "attribute": "irons_spellbooks:max_mana",
+            "gem_class": {
+                "key": "staff",
+                "types": [
+                    "examplemod:staff"
+                ]
+            },
+            "operation": "add_value",
+            "values": {
+                "cracked": 25.0,
+                "chipped": 50.0,
+                "flawed": 75.0,
+                "normal": 100.0,
+                "flawless": 125.0,
+                "perfect": 150.0
+            }
+        },
+                {
+            "type": "apotheosis:attribute",
+            "attribute": "irons_spellbooks:spell_power",
+            "gem_class": {
+                "key": "spellbook",
+                "types": [
+                    "examplemod:spellbook"
+                ]
+            },
+            "operation": "add_multiplied_base",
+            "values": {
+                "cracked": 0.03,
+                "chipped": 0.05,
+                "flawed": 0.08,
+                "normal": 0.12,
+                "flawless": 0.15,
+                "perfect": 0.2
+            }
+        }
+    ]
+} 
