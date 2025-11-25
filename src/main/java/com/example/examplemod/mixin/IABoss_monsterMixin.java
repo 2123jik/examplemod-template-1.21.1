@@ -24,6 +24,6 @@ public class IABoss_monsterMixin {
     )
     private float modifyDamageCapLogic(float cap, float damage) {
 
-        return Math.min(cap, damage)+getL2HostilityLevel(((IABoss_monster)(Object)this)).orElse(1);
+        return Math.min(cap+getL2HostilityLevel(((IABoss_monster)(Object)this)).orElse(1), damage);
     }
 }

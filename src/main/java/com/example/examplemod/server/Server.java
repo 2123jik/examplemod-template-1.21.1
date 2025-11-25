@@ -55,6 +55,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.warden.Warden;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.armortrim.ArmorTrim;
@@ -79,12 +81,14 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.BasicItemListing;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -879,5 +883,37 @@ public static void onPreDamage(LivingDamageEvent.Pre event) {
 
         // 如果 Curios 未安装或实体没有饰品栏，返回0
         return 0;
+    }
+    @SubscribeEvent
+    public static void modifyVillagerTrades(VillagerTradesEvent event) {
+        // 目标：修改牧羊人 (SHEPHERD)
+        if (event.getType() == VillagerProfession.SHEPHERD) {
+
+            // === 1. 修改第 1 级交易 ===
+            List<VillagerTrades.ItemListing> level1 = event.getTrades().get(1);
+
+            // 使用原版类: ItemsForEmeralds (玩家买东西)
+            // 参数: 物品, 绿宝石价格, 购买数量, 最大交易次数, 村民获得经验
+            level1.add(new VillagerTrades.ItemsForEmeralds(
+                    Items.DIAMOND, // 卖给玩家钻石
+                    5,             // 价格: 5个绿宝石
+                    1,             // 数量: 1个
+                    12,            // 最多交易12次
+                    2              // 村民得2点经验
+            ));
+
+            // === 2. 修改第 2 级交易 ===
+            List<VillagerTrades.ItemListing> level2 = event.getTrades().get(2);
+
+            // 使用原版类: EmeraldForItems (玩家卖东西)
+            // 参数: 物品, 玩家需要给的数量, 最大交易次数, 村民获得经验
+            level2.add(new VillagerTrades.EmeraldForItems(
+                    Blocks.STONE, // 玩家给石头
+                    32,           // 需要 32 个
+                    16,           // 上限 16 次
+                    10            // 村民经验
+            ));
+
+        }
     }
 }

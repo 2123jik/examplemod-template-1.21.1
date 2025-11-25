@@ -574,6 +574,7 @@ public class InventoryModelRenderer {
             }
         }
         if (isMouseOver(mx, my, viewX, viewY, LayoutState.width, LayoutState.height) && !LayoutState.isEditMode) {
+
             double scrollY = event.getScrollDeltaY();
             if (scrollY != 0) {
                 PreviewState.scale += (float) (scrollY * 2.0f);

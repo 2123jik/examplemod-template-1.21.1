@@ -25,6 +25,6 @@ public class LLibraryBossMonsterMixin {
     )
     private float modifyDamageCapLogic(float cap, float damage) {
 
-        return Math.min(cap, damage)+getL2HostilityLevel(((LLibrary_Boss_Monster)(Object)this)).orElse(1);
+        return Math.min(cap+getL2HostilityLevel(((LLibrary_Boss_Monster)(Object)this)).orElse(1), damage);
     }
 }

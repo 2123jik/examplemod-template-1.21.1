@@ -4,6 +4,7 @@ import com.example.examplemod.affix.*;
 import com.example.examplemod.category.LootCategories;
 import com.example.examplemod.category.SlotGroups;
 import com.example.examplemod.client.gui.InventoryModelRenderer;
+
 import com.example.examplemod.command.IronsApothicCommands;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
@@ -56,7 +57,8 @@ public class ExampleMod{
         ModRecipes.register(modEventBus);
         SpellRegistries.register(modEventBus);
         ModDataComponents.register(modEventBus);
-        modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryModelRenderer.ClientConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryModelRenderer.ClientConfig.SPEC,ExampleMod.MODID+"_1");
+//        modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryTooltipRenderer.TooltipConfig.SPEC,ExampleMod.MODID+"_2");
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
         ModConstructor.construct(MODID, () -> new ModConstructor() {
             @Override

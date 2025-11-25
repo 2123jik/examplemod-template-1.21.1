@@ -1,10 +1,12 @@
 package com.example.examplemod.client;
 
 import com.example.examplemod.ExampleMod;
+import com.example.examplemod.client.chess.LocalBoardScreen;
 import com.example.examplemod.client.entity.GoldenGateRenderer;
 import com.example.examplemod.client.entity.SwordProjectileRenderer;
 import com.example.examplemod.client.gui.OffsetConfigScreen;
 
+import com.example.examplemod.client.screen.ModernMerchantScreen;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
 import com.example.examplemod.register.ModEntities;
@@ -32,6 +34,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
@@ -71,6 +74,7 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -114,6 +118,24 @@ public class ClientSetup {
             GLFW.GLFW_KEY_I, // 默认按键 (这里是 'I' 键)
             "key.categories.yourmod" // 按键分类的翻译键
     );
+    public static final KeyMapping OPEN_GUI = new KeyMapping(
+            "key.worldflipper.toggle_mode",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_O,
+            "key.categories.worldflipper"
+    );
+
+    @SubscribeEvent
+    public static void registerKeys(RegisterKeyMappingsEvent event) {
+        event.register(OPEN_GUI);
+    }
+
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent.Key event) {
+        if (OPEN_GUI.consumeClick()) {
+            Minecraft.getInstance().setScreen(new LocalBoardScreen());
+        }
+    }
     public static final KeyMapping OPEN_CONFIG_KEY = new KeyMapping(
             "key.examplemod.open_render_config",
             InputConstants.Type.KEYSYM,
@@ -128,6 +150,23 @@ public class ClientSetup {
                 Minecraft.getInstance().setScreen(new OffsetConfigScreen());
 
             }
+        }
+    }
+    @SubscribeEvent
+    public static void onScreenOpening(ScreenEvent.Opening event) {
+        // 检查当前正要打开的屏幕是不是原版的村民交易界面
+        if (event.getScreen() instanceof MerchantScreen originalScreen) {
+
+            // 创建我们自己的 FastTradeScreen
+            // 我们从原版 Screen 中“继承” Menu 和 标题
+            ModernMerchantScreen newScreen = new ModernMerchantScreen(
+                    originalScreen.getMenu(),
+                    Minecraft.getInstance().player.getInventory(),
+                    originalScreen.getTitle()
+            );
+
+            // 告诉游戏：别开原版那个了，开我这个
+            event.setNewScreen(newScreen);
         }
     }
     @SubscribeEvent
@@ -922,7 +961,7 @@ public class ClientSetup {
 
     }
 
-    //@EventBusSubscriber(value = Dist.CLIENT)
+//    @EventBusSubscriber(value = Dist.CLIENT)
     public static class Test {
 
         public static final VertexFormat vertexFormat=VertexFormat.builder()
