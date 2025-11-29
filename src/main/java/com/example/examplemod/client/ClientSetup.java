@@ -6,6 +6,7 @@ import com.example.examplemod.client.entity.GoldenGateRenderer;
 import com.example.examplemod.client.entity.SwordProjectileRenderer;
 import com.example.examplemod.client.gui.OffsetConfigScreen;
 
+import com.example.examplemod.client.screen.ModernBrewingStandScreen;
 import com.example.examplemod.client.screen.ModernMerchantScreen;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
@@ -34,6 +35,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
 import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
@@ -74,7 +76,6 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -112,6 +113,7 @@ import static net.minecraft.world.item.Items.TNT;
 
 @EventBusSubscriber(modid = ExampleMod.MODID,value = Dist.CLIENT)
 public class ClientSetup {
+
     public static final KeyMapping INSPECT_KEY = new KeyMapping(
             "key.yourmod.inspect", // 翻译键，用于在控制菜单中显示
             InputConstants.Type.KEYSYM, // 按键类型
@@ -152,7 +154,7 @@ public class ClientSetup {
             }
         }
     }
-    @SubscribeEvent
+//    @SubscribeEvent
     public static void onScreenOpening(ScreenEvent.Opening event) {
         // 检查当前正要打开的屏幕是不是原版的村民交易界面
         if (event.getScreen() instanceof MerchantScreen originalScreen) {
@@ -160,6 +162,19 @@ public class ClientSetup {
             // 创建我们自己的 FastTradeScreen
             // 我们从原版 Screen 中“继承” Menu 和 标题
             ModernMerchantScreen newScreen = new ModernMerchantScreen(
+                    originalScreen.getMenu(),
+                    Minecraft.getInstance().player.getInventory(),
+                    originalScreen.getTitle()
+            );
+
+            // 告诉游戏：别开原版那个了，开我这个
+            event.setNewScreen(newScreen);
+        }
+        if (event.getScreen() instanceof BrewingStandScreen originalScreen) {
+
+            // 创建我们自己的 FastTradeScreen
+            // 我们从原版 Screen 中“继承” Menu 和 标题
+            ModernBrewingStandScreen newScreen = new ModernBrewingStandScreen(
                     originalScreen.getMenu(),
                     Minecraft.getInstance().player.getInventory(),
                     originalScreen.getTitle()

@@ -9,6 +9,7 @@
     "ChainLightningMixin",
     "ChestBlockEntityMixin",
     "ComfortEffectMixin",
+    "CompassItemMixin",
     "DetonationEffectMixin",
     "EffectAbyssal_BurnMixin",
     "EffectMonstrousMixin",

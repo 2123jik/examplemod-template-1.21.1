@@ -4,9 +4,11 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import net.minecraft.Util; // [新增] 用于打开链接
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
@@ -30,6 +32,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joml.Quaternionf;
 
+import java.net.URI; // [新增]
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +63,6 @@ public class InventoryModelRenderer {
             width = builder.comment("Window Width").defineInRange("width", 80, 50, 1000);
             height = builder.comment("Window Height").defineInRange("height", 120, 60, 1000);
             scale = builder.comment("Model Scale").defineInRange("scale", 30.0, 5.0, 300.0);
-            // [新增]
             selectorWidth = builder.comment("Selector List Width").defineInRange("selectorWidth", 100, 60, 400);
             builder.pop();
         }
@@ -82,12 +84,11 @@ public class InventoryModelRenderer {
         static int yOffset = 10;
         static int width = 80;
         static int height = 120;
-        static int selectorWidth = 100; // [新增]
+        static int selectorWidth = 100;
 
         static boolean isEditMode = false;
         static boolean isMovingWindow = false;
         static boolean isResizingWindow = false;
-        // [新增] 列表调整状态
         static boolean isResizingSelector = false;
 
         static final int MIN_WIDTH = 60;
@@ -125,13 +126,7 @@ public class InventoryModelRenderer {
         static void loadEntityTypes() {
             SORTED_ENTITY_TYPES = BuiltInRegistries.ENTITY_TYPE.stream()
                     .filter(t -> t != EntityType.MARKER )
-                    // 原代码：按显示名称排序
-                    // .sorted(Comparator.comparing(t -> t.getDescription().getString()))
-
-                    // 新代码：按 Registry Key (namespace:path) 排序
-                    // 这会先按 modid 排序，再按实体的 registry name 排序
                     .sorted(Comparator.comparing(BuiltInRegistries.ENTITY_TYPE::getKey))
-
                     .collect(Collectors.toList());
         }
     }
@@ -152,7 +147,7 @@ public class InventoryModelRenderer {
             LayoutState.yOffset = ClientConfig.INSTANCE.yOffset.get();
             LayoutState.width = ClientConfig.INSTANCE.width.get();
             LayoutState.height = ClientConfig.INSTANCE.height.get();
-            LayoutState.selectorWidth = ClientConfig.INSTANCE.selectorWidth.get(); // [新增]
+            LayoutState.selectorWidth = ClientConfig.INSTANCE.selectorWidth.get();
             PreviewState.scale = ClientConfig.INSTANCE.scale.get().floatValue();
             configLoaded = true;
         }
@@ -177,7 +172,6 @@ public class InventoryModelRenderer {
         guiGraphics.renderOutline(viewX, viewY, viewW, viewH, borderColor);
 
         if (LayoutState.isEditMode) {
-            // 渲染主窗口调整手柄
             int handleX = viewX + viewW - RESIZE_HANDLE_SIZE;
             int handleY = viewY + viewH - RESIZE_HANDLE_SIZE;
             guiGraphics.fill(handleX, handleY, viewX + viewW, viewY + viewH, 0xAAFFD700);
@@ -205,20 +199,36 @@ public class InventoryModelRenderer {
         guiGraphics.disableScissor();
 
         // 3. UI 按钮
+
+        // --- 编辑按钮 (E) ---
         int editBtnX = viewX + viewW - BUTTON_SIZE - 2;
         int editBtnY = viewY + 2;
         boolean hoverEdit = isMouseOver(event.getMouseX(), event.getMouseY(), editBtnX, editBtnY, BUTTON_SIZE, BUTTON_SIZE);
         guiGraphics.fill(editBtnX, editBtnY, editBtnX + BUTTON_SIZE, editBtnY + BUTTON_SIZE, LayoutState.isEditMode ? 0xFFFFAA00 : (hoverEdit ? 0xFFAAAAAA : 0xFF555555));
         guiGraphics.drawCenteredString(Minecraft.getInstance().font, LayoutState.isEditMode ? "V" : "E", editBtnX + BUTTON_SIZE / 2 + 1, editBtnY + 2, 0xFFFFFF);
 
+        // --- [新增] 搜索按钮 (S) ---
+        // 放在编辑按钮的左边
+        int searchBtnX = editBtnX - BUTTON_SIZE - 2;
+        int searchBtnY = viewY + 2;
+        boolean hoverSearch = isMouseOver(event.getMouseX(), event.getMouseY(), searchBtnX, searchBtnY, BUTTON_SIZE, BUTTON_SIZE);
+        // 如果当前没有渲染目标(只有玩家自己)，则搜索按钮置灰不可用
+        boolean canSearch = renderTarget != null && !(renderTarget instanceof LocalPlayer); // 或者是具体的 EntityPlayer 判断
+
+        int searchColor = canSearch ? (hoverSearch ? 0xFF00AAFF : 0xFF0055AA) : 0xFF333333; // 蓝色系
+        guiGraphics.fill(searchBtnX, searchBtnY, searchBtnX + BUTTON_SIZE, searchBtnY + BUTTON_SIZE, searchColor);
+        // 绘制 'S' 或 '?'
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, "S", searchBtnX + BUTTON_SIZE / 2 + 1, searchBtnY + 2, canSearch ? 0xFFFFFF : 0x888888);
+
+        // --- 列表按钮 (L) ---
         int listBtnX = viewX + 2;
         int listBtnY = viewY + 2;
         boolean hoverList = isMouseOver(event.getMouseX(), event.getMouseY(), listBtnX, listBtnY, BUTTON_SIZE, BUTTON_SIZE);
         guiGraphics.fill(listBtnX, listBtnY, listBtnX + BUTTON_SIZE, listBtnY + BUTTON_SIZE, SelectorState.isOpen ? 0xFF00AA00 : (hoverList ? 0xFFAAAAAA : 0xFF555555));
         guiGraphics.drawCenteredString(Minecraft.getInstance().font, "L", listBtnX + BUTTON_SIZE / 2 + 1, listBtnY + 2, 0xFFFFFF);
-        // 4. 渲染列表选择器 (使用动态宽度)
+
+        // 4. 渲染列表选择器
         if (SelectorState.isOpen && SORTED_ENTITY_TYPES != null) {
-            // [新增] 传入当前配置的宽度
             renderEntitySelector(guiGraphics, viewX + viewW, viewY, LayoutState.selectorWidth, viewH, event.getMouseX(), event.getMouseY());
         }
 
@@ -237,10 +247,6 @@ public class InventoryModelRenderer {
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
 
-        // [修复点] 动态 Z 轴深度计算
-        // 问题原因：如果 scale 很大，模型会膨胀。如果 Z 轴位移不够（比如只有 150），模型前半部分就会穿过 Z=0 的屏幕平面被切掉。
-        // 解决方案：Z 轴位移至少为 250，并且随着 scale 增大而增大 (scale * 1.5)。
-        // 这样保证模型永远在“屏幕里面”。
         float safeZ = Math.max(250.0F, PreviewState.scale * 2.0F);
 
         poseStack.translate(x + PreviewState.panX, y + PreviewState.panY, safeZ);
@@ -277,7 +283,6 @@ public class InventoryModelRenderer {
 
         Lighting.setupForEntityInInventory();
 
-        // 备份实体旋转状态
         float yBodyRotOld = 0, yRotOld, xRotOld, yHeadRotOOld = 0, yHeadRotOld = 0;
         if (entity instanceof LivingEntity living) {
             yBodyRotOld = living.yBodyRot;
@@ -307,7 +312,6 @@ public class InventoryModelRenderer {
         } catch (Exception ignored) {
         } finally {
             dispatcher.setRenderShadow(true);
-            // 恢复状态
             if (entity instanceof LivingEntity living) {
                 living.yBodyRot = yBodyRotOld;
                 living.setYRot(yRotOld);
@@ -341,17 +345,10 @@ public class InventoryModelRenderer {
         poseStack.popPose();
     }
 
-    // ==========================================
-    // 4. 列表选择器 (支持宽度调整)
-    // ==========================================
     private static void renderEntitySelector(GuiGraphics guiGraphics, int x, int y, int w, int h, double mx, double my) {
-        // 背景
         guiGraphics.fill(x, y, x + w, y + h, 0xFF000000);
-
         guiGraphics.renderOutline(x, y, w, h, 0xFF888888);
 
-        // [新增] 渲染右侧的拖拽手柄条
-        // 当鼠标悬停在右边缘 (x+w-4 到 x+w) 时，高亮显示
         boolean hoverResize = mx >= x + w - 4 && mx <= x + w + 2 && my >= y && my <= y + h;
         int dragColor = (LayoutState.isResizingSelector || hoverResize) ? 0xAAFFD700 : 0x00000000;
         guiGraphics.fill(x + w - 3, y, x + w, y + h, dragColor);
@@ -372,7 +369,6 @@ public class InventoryModelRenderer {
             EntityType<?> type = list.get(i);
             int itemY = (int) (y + (i * SelectorState.ITEM_HEIGHT) - SelectorState.scrollOffset);
 
-            // 判断悬停（减去滚动条宽度和拖拽条宽度）
             boolean isHovered = mx >= x && mx < x + w - 4 && my >= itemY && my < itemY + SelectorState.ITEM_HEIGHT;
             if (isHovered) guiGraphics.fill(x + 1, itemY, x + w - 4, itemY + SelectorState.ITEM_HEIGHT, 0x40FFFFFF);
 
@@ -384,7 +380,6 @@ public class InventoryModelRenderer {
             Component name = type.getDescription();
             int color = isBroken ? 0xFF5555 : (isSelected ? 0x00FF00 : (isHovered ? 0xFFFFFF : 0xAAAAAA));
 
-            // 根据当前宽度截取文字
             String nameStr = Minecraft.getInstance().font.plainSubstrByWidth(name.getString(), w - 15);
             if (isBroken) nameStr = "[X] " + nameStr;
 
@@ -393,18 +388,17 @@ public class InventoryModelRenderer {
 
         guiGraphics.disableScissor();
 
-        // 滚动条逻辑
         if (totalHeight > h) {
             int barHeight = (int) ((float) h / totalHeight * h);
             if (barHeight < 10) barHeight = 10;
             int barY = y + (int) ((SelectorState.scrollOffset / maxScroll) * (h - barHeight));
-            int barX = x + w - SelectorState.SCROLLBAR_WIDTH - 4; // 让出调整把手的位置
+            int barX = x + w - SelectorState.SCROLLBAR_WIDTH - 4;
             guiGraphics.fill(barX, barY, barX + SelectorState.SCROLLBAR_WIDTH, barY + barHeight, 0xFF888888);
         }
     }
 
     // ==========================================
-    // 5. 交互逻辑 (新增列表拖拽)
+    // 5. 交互逻辑
     // ==========================================
 
     @SubscribeEvent
@@ -417,9 +411,8 @@ public class InventoryModelRenderer {
         int viewY = screen.getGuiTop() + LayoutState.yOffset;
         int viewW = LayoutState.width;
         int viewH = LayoutState.height;
-        int listX = viewX + viewW; // 列表的起始X
+        int listX = viewX + viewW;
 
-        // 0. 中键拾取物品逻辑 (保持不变)
         if (event.getButton() == 2) {
             Slot hoveredSlot = screen.getSlotUnderMouse();
             if (hoveredSlot != null && hoveredSlot.hasItem()) {
@@ -435,18 +428,15 @@ public class InventoryModelRenderer {
             }
         }
 
-        // 1. 列表控制
         if (SelectorState.isOpen && SORTED_ENTITY_TYPES != null) {
             int listW = LayoutState.selectorWidth;
 
-            // [新增] 检测是否点击了列表右边缘 (调整大小)
             if (mx >= listX + listW - 4 && mx <= listX + listW + 2 && my >= viewY && my <= viewY + viewH) {
                 LayoutState.isResizingSelector = true;
                 event.setCanceled(true);
                 return;
             }
 
-            // 列表项点击逻辑
             if (mx >= listX && mx < listX + listW - 4 && my >= viewY && my < viewY + viewH) {
                 double relY = my - viewY + SelectorState.scrollOffset;
                 int index = (int) (relY / SelectorState.ITEM_HEIGHT);
@@ -464,7 +454,7 @@ public class InventoryModelRenderer {
             }
         }
 
-        // 2. UI 按钮 (保持不变)
+        // 列表按钮 (L)
         int listBtnX = viewX + 2;
         int listBtnY = viewY + 2;
         if (isMouseOver(mx, my, listBtnX, listBtnY, BUTTON_SIZE, BUTTON_SIZE)) {
@@ -475,6 +465,7 @@ public class InventoryModelRenderer {
             return;
         }
 
+        // 编辑按钮 (E)
         int editBtnX = viewX + viewW - BUTTON_SIZE - 2;
         int editBtnY = viewY + 2;
         if (isMouseOver(mx, my, editBtnX, editBtnY, BUTTON_SIZE, BUTTON_SIZE)) {
@@ -484,7 +475,16 @@ public class InventoryModelRenderer {
             return;
         }
 
-        // 3. 主窗口编辑模式
+        // --- [新增] 搜索按钮点击事件 (S) ---
+        int searchBtnX = editBtnX - BUTTON_SIZE - 2;
+        int searchBtnY = viewY + 2;
+        if (isMouseOver(mx, my, searchBtnX, searchBtnY, BUTTON_SIZE, BUTTON_SIZE)) {
+            performSearch(); // 执行搜索
+            playSound();
+            event.setCanceled(true);
+            return;
+        }
+
         if (LayoutState.isEditMode) {
             int handleX = viewX + viewW - RESIZE_HANDLE_SIZE;
             int handleY = viewY + viewH - RESIZE_HANDLE_SIZE;
@@ -499,7 +499,6 @@ public class InventoryModelRenderer {
                 return;
             }
         }
-        // 4. 视图操作 (旋转/平移)
         else {
             if (isMouseOver(mx, my, viewX, viewY, viewW, viewH)) {
                 if (event.getButton() == 2) {
@@ -515,17 +514,49 @@ public class InventoryModelRenderer {
         }
     }
 
+    /**
+     * [新增] 执行搜索逻辑
+     * 根据当前 renderTarget 的类型(ItemStack/Entity)获取注册名，并打开浏览器。
+     */
+    private static void performSearch() {
+        if (renderTarget == null) return;
+
+        String query = null;
+
+        try {
+            if (renderTarget instanceof ItemStack stack) {
+                if (stack.isEmpty()) return;
+                // 获取 Registry Name 的路径部分 (例如: minecraft:diamond_sword -> diamond_sword)
+                query = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+            } else if (renderTarget instanceof Entity entity) {
+                // 获取 Entity Registry Name 的路径部分 (例如: minecraft:creeper -> creeper)
+                query = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).getPath();
+            }
+        } catch (Exception e) {
+            // 忽略异常，防止奔溃
+        }
+
+        if (query != null && !query.isEmpty()) {
+            try {
+                // 构造 MCMOD 搜索链接
+                String url = "https://search.mcmod.cn/s?key=" + query;
+                Util.getPlatform().openUri(new URI(url));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onMouseReleased(ScreenEvent.MouseButtonReleased.Pre event) {
         LayoutState.isMovingWindow = false;
         LayoutState.isResizingWindow = false;
-        LayoutState.isResizingSelector = false; // [新增]
+        LayoutState.isResizingSelector = false;
         PreviewState.isManipulatingModel = false;
     }
 
     @SubscribeEvent
     public static void onMouseDragged(ScreenEvent.MouseDragged.Pre event) {
-        // [新增] 列表宽度拖动处理
         if (LayoutState.isResizingSelector) {
             LayoutState.selectorWidth += (int) event.getDragX();
             if (LayoutState.selectorWidth < 60) LayoutState.selectorWidth = 60;
@@ -565,7 +596,6 @@ public class InventoryModelRenderer {
 
         if (SelectorState.isOpen) {
             int listX = viewX + LayoutState.width;
-            // [修正] 使用 selectorWidth
             if (isMouseOver(mx, my, listX, viewY, LayoutState.selectorWidth, LayoutState.height)) {
                 double scrollY = event.getScrollDeltaY();
                 SelectorState.scrollOffset -= (float) (scrollY * SelectorState.ITEM_HEIGHT);
@@ -593,13 +623,11 @@ public class InventoryModelRenderer {
             ClientConfig.INSTANCE.width.set(LayoutState.width);
             ClientConfig.INSTANCE.height.set(LayoutState.height);
             ClientConfig.INSTANCE.scale.set((double) PreviewState.scale);
-            // [新增] 保存列表宽度
             ClientConfig.INSTANCE.selectorWidth.set(LayoutState.selectorWidth);
             ClientConfig.SPEC.save();
         }
     }
 
-    // 工具方法
     private static Entity getCachedEntity(EntityType<?> type) {
         if (Minecraft.getInstance().level == null) return null;
         return ENTITY_CACHE.computeIfAbsent(type, t -> {

@@ -15,7 +15,9 @@ import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.apothic_attributes.payload.CritParticlePayload;
 import dev.shadowsoffire.placebo.events.AnvilLandEvent;
 import dev.xkmc.l2core.capability.attachment.GeneralCapabilityHolder;
+import dev.xkmc.l2core.capability.player.PlayerCapabilityHolder;
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
+import dev.xkmc.l2hostility.content.capability.player.PlayerDifficulty;
 import dev.xkmc.l2hostility.events.HostilityInitEvent;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import dev.xkmc.modulargolems.content.entity.common.AbstractGolemEntity;
@@ -257,19 +259,45 @@ public class Server {
 
         @SubscribeEvent
         public static void onPlayerFinishUsingItem(LivingEntityUseItemEvent.Finish event) {
-            // 检查实体是否为玩家，以及物品是否为食物
-            if (event.getEntity() instanceof Player player && event.getItem().has(FOOD)) {
-                // 获取玩家的能力实例
+            // 检查是否为玩家且物品包含食物组件
+            if (event.getEntity() instanceof Player player && event.getItem().has(DataComponents.FOOD)) { // 1.20.5+ 写法
+
                 IEatenFoods cap = player.getCapability(ModCapabilities.EATEN_FOODS_CAPABILITY);
 
-                // 检查能力实例是否存在（不为 null）
                 if (cap != null) {
-                    // 调用 addFood 方法记录吃掉的食物
-                    cap.addFood(event.getItem());
+                    ItemStack currentFood = event.getItem();
+
+                    // 核心逻辑：先检查是否吃过
+                    if (!cap.hasEaten(currentFood)) {
+
+                        // 没吃过 -> 给奖励
+                        // 确保只在服务端生成实体
+                        if (!player.level().isClientSide()) {
+
+                            // 1. 生成经验球
+                            int xpValue = 100; // 经验值数量
+                            PlayerDifficulty capPD = (PlayerDifficulty)((PlayerCapabilityHolder)LHMiscs.PLAYER.type()).getOrCreate(player);
+                            net.minecraft.world.entity.ExperienceOrb orb = new net.minecraft.world.entity.ExperienceOrb(
+                                    player.level(),
+                                    player.getX(),
+                                    player.getY() + 0.5,
+                                    player.getZ(),
+                                    (int)(xpValue*(1+0.01*capPD.getLevel(player).getLevel()))
+                            );
+                            player.level().addFreshEntity(orb);
+
+                            // 2. 可选：播放个音效或提示
+                            // player.playSound(SoundEvents.PLAYER_LEVELUP, 0.5f, 1.0f);
+                        }
+
+                        // 3. 记录数据 (这一步必须在检查之后)
+                        // 因为我们修改了 Capability 的 addFood，即使你在这里多次调用，它内部也会去重
+                        cap.addFood(currentFood);
+                    }
+                    // 如果 hasEaten 为 true，说明是旧存档里已经吃过的，直接忽略，不给经验，也不用重新记录
                 }
             }
         }
-
         @SubscribeEvent
         public static void onPlayerTick(EntityTickEvent.Post event) {
 
@@ -426,7 +454,7 @@ public class Server {
                 if (weapon.has(MAKEN_SWORD.get())) {
                     if (player.getHealth() <= (player.getMaxHealth() * 0.1f) && !player.getCooldowns().isOnCooldown(weapon.getItem())) {
                         event.setNewDamage(1);
-                        player.setHealth(player.getMaxHealth() * 0.3f);
+                        player.heal(player.getMaxHealth() * 0.3f);
                         player.addEffect(new MobEffectInstance(MAKEN_POWER, 400, 0));
                         player.getCooldowns().addCooldown(weapon.getItem(), 3600);
                         player.sendSystemMessage(Component.literal("§cYour Maken Sword awakens to protect you!"));
@@ -916,4 +944,5 @@ public static void onPreDamage(LivingDamageEvent.Pre event) {
 
         }
     }
+
 }

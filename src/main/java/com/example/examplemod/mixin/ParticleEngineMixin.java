@@ -16,12 +16,10 @@ public class ParticleEngineMixin {
 
         ParticleAccessor accessor = (ParticleAccessor) particle;
 
-        // 使用修改后的新方法名
         int originalLife = accessor.getRawLifetime();
 
         int newLife = Math.max(1, originalLife / 3);
 
-        // 使用修改后的新方法名
         accessor.setRawLifetime(newLife);
     }
 }
