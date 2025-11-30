@@ -88,7 +88,7 @@ public class CuriosBackRenderLayer<T extends LivingEntity, M extends HumanoidMod
 
     private List<ItemStack> getCuriosBackStacks(LivingEntity entity) {
         Optional<ICuriosItemHandler> optional = CuriosApi.getCuriosInventory(entity);
-        return optional.map(iCuriosItemHandler -> iCuriosItemHandler.findCurios(item -> true)
+        return optional.map(iCuriosItemHandler -> iCuriosItemHandler.findCurios("back")
                 .stream()
                 .map(SlotResult::stack)
                 .filter(stack -> !stack.isEmpty() && !stack.is(Items.ELYTRA))

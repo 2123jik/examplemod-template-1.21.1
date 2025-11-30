@@ -52,7 +52,7 @@ public class TimeEchoRenderer {
 
             // 设置为 0.8 秒
             float delaySeconds = 0.8f;
-            float alpha = 0.5f;
+            float alpha = 0.3f;
 
             renderSwapGhost(mc, player, delaySeconds, camPos, poseStack, bufferSource, alpha);
 

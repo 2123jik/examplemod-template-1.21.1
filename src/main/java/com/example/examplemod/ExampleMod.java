@@ -5,7 +5,6 @@ import com.example.examplemod.category.LootCategories;
 import com.example.examplemod.category.SlotGroups;
 import com.example.examplemod.client.gui.InventoryModelRenderer;
 
-import com.example.examplemod.command.IronsApothicCommands;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
 import com.example.examplemod.network.ServerboundOpenBlockInHandMessage;
@@ -16,7 +15,6 @@ import dev.shadowsoffire.apotheosis.affix.AffixRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.network.v3.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -54,10 +52,6 @@ public class ExampleMod {
         // 1. 注册生命周期事件监听器
         // 注册通用设置阶段（CommonSetup）的监听器
         modEventBus.addListener(this::commonSetup);
-        // 注册命令注册事件的监听器（尽管这里用了 addListener，通常 RegisterCommandsEvent 是在 NeoForge.EVENT_BUS 上触发的，需确认）
-        // *修正注*：RegisterCommandsEvent 通常是在 Forge 总线上触发，但这里代码将其挂载在了 modEventBus 上，
-        // 如果是 NeoForge 新版写法可能是允许的，或者这是一个自定义的转发逻辑。
-        modEventBus.addListener(this::registerCommands);
 
         // 2. 注册延迟注册表 (DeferredRegister)
         // 注册实体
@@ -88,8 +82,7 @@ public class ExampleMod {
         // 5. 注册 Mod 配置文件
         // 注册客户端配置，用于渲染物品栏模型
         modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryModelRenderer.ClientConfig.SPEC, ExampleMod.MODID + "_1");
-        // 下面这行被注释掉了，原本可能用于注册工具提示的配置
-        // modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryTooltipRenderer.TooltipConfig.SPEC,ExampleMod.MODID+"_2");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, InventoryModelRenderer.LayerConfig.SPEC, ExampleMod.MODID + "_2");
 
         // 6. 使用 PuzzlesLib 进行 Mod 构建初始化
         ModConstructor.construct(MODID, () -> new ModConstructor() {
@@ -119,6 +112,7 @@ public class ExampleMod {
         AffixRegistry.INSTANCE.registerCodec(modResourceLoc("spell_trigger"), SpellTriggerAffix.CODEC);
         // 法力消耗词缀
         AffixRegistry.INSTANCE.registerCodec(modResourceLoc("mana_cost"), ManaCostAffix.CODEC);
+
     }
 
     /**
@@ -139,13 +133,4 @@ public class ExampleMod {
         return ResourceLocation.fromNamespaceAndPath(MODID, id);
     }
 
-    /**
-     * 命令注册事件
-     * 用于注册游戏内的指令（如 /examplemod ...）。
-     */
-    private void registerCommands(RegisterCommandsEvent event) {
-        // 注册 IronsApothic 相关的命令到命令调度器
-        IronsApothicCommands.register(event.getDispatcher());
-        LOGGER.info("Commands registered.");
-    }
 }

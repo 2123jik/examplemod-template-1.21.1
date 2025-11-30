@@ -1,43 +1,89 @@
 package com.example.examplemod.client.gui;
 
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Axis;
-import net.minecraft.Util; // [新增] 用于打开链接
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SpawnEggItem;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ContainerScreenEvent;
-import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
-import org.joml.Quaternionf;
+import org.lwjgl.glfw.GLFW;
 
-import java.net.URI; // [新增]
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @EventBusSubscriber(value = Dist.CLIENT)
 public class InventoryModelRenderer {
+
+    // 按键绑定
+    public static final KeyMapping OPEN_EDITOR_KEY = new KeyMapping(
+            "key.examplemod.open_editor",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_K, // 默认 K 键打开
+            "key.categories.examplemod"
+    );
+
+    @SubscribeEvent
+    public static void registerBindings(RegisterKeyMappingsEvent event) {
+        event.register(OPEN_EDITOR_KEY);
+    }
+
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent.Key event) {
+        if (OPEN_EDITOR_KEY.consumeClick()) {
+//            Minecraft.getInstance().setScreen(new ProModelEditorScreen());
+        }
+    }
+
+    // ==========================================
+    // 配置类 (保持不变，方便存储)
+    // ==========================================
+    public static class LayerConfig {
+        public static final LayerConfig INSTANCE;
+        public static final ModConfigSpec SPEC;
+
+        static {
+            Pair<LayerConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(LayerConfig::new);
+            SPEC = pair.getRight();
+            INSTANCE = pair.getLeft();
+        }
+
+        public static class LayerParams {
+            public final ModConfigSpec.DoubleValue transX, transY, transZ;
+            public final ModConfigSpec.DoubleValue rotX, rotY, rotZ;
+            public final ModConfigSpec.DoubleValue scaleX, scaleY, scaleZ;
+            public final ModConfigSpec.ConfigValue<String> bone;
+
+            public LayerParams(ModConfigSpec.Builder builder, int id) {
+                builder.push("Layer_" + id);
+                transX = builder.defineInRange("transX", 0.0, -50.0, 50.0); // 扩大范围方便调试
+                transY = builder.defineInRange("transY", 0.0, -50.0, 50.0);
+                transZ = builder.defineInRange("transZ", 0.0, -50.0, 50.0);
+                rotX = builder.defineInRange("rotX", 0.0, -360.0, 360.0);
+                rotY = builder.defineInRange("rotY", 0.0, -360.0, 360.0);
+                rotZ = builder.defineInRange("rotZ", 0.0, -360.0, 360.0);
+                scaleX = builder.defineInRange("scaleX", 1.0, 0.01, 10.0);
+                scaleY = builder.defineInRange("scaleY", 1.0, 0.01, 10.0);
+                scaleZ = builder.defineInRange("scaleZ", 1.0, 0.01, 10.0);
+                bone = builder.define("bone", "none");
+                builder.pop();
+            }
+        }
+
+        public final List<LayerParams> layers = new ArrayList<>();
+
+        LayerConfig(ModConfigSpec.Builder builder) {
+            builder.comment("Render Layer Settings").push("Layers");
+            // 定义 6 层，足够用了
+            for(int i=1; i<=6; i++) layers.add(new LayerParams(builder, i));
+            builder.pop();
+        }
+    }
 
     public static class ClientConfig {
         public static final ClientConfig INSTANCE;
@@ -66,580 +112,5 @@ public class InventoryModelRenderer {
             selectorWidth = builder.comment("Selector List Width").defineInRange("selectorWidth", 100, 60, 400);
             builder.pop();
         }
-    }
-
-    // ==========================================
-    // 1. 状态管理
-    // ==========================================
-
-    private static boolean configLoaded = false;
-    public static Object renderTarget = null;
-
-    private static final Map<EntityType<?>, Entity> ENTITY_CACHE = new HashMap<>();
-    private static final Set<EntityType<?>> BROKEN_ENTITIES = new HashSet<>();
-    private static List<EntityType<?>> SORTED_ENTITY_TYPES = null;
-
-    private static class LayoutState {
-        static int xOffset = -90;
-        static int yOffset = 10;
-        static int width = 80;
-        static int height = 120;
-        static int selectorWidth = 100;
-
-        static boolean isEditMode = false;
-        static boolean isMovingWindow = false;
-        static boolean isResizingWindow = false;
-        static boolean isResizingSelector = false;
-
-        static final int MIN_WIDTH = 60;
-        static final int MIN_HEIGHT = 80;
-    }
-
-    private static class PreviewState {
-        static float rotX = 0;
-        static float rotY = 0;
-        static float scale = 90;
-        static float panX = 0;
-        static float panY = 0;
-        static boolean isManipulatingModel = false;
-        static int dragType = 0;
-
-        static void reset() {
-            rotX = 0; rotY = 0; panX = 0; panY = 0;
-            scale = ClientConfig.INSTANCE.scale.get().floatValue();
-        }
-    }
-
-    private static class SelectorState {
-        static boolean isOpen = false;
-        static float scrollOffset = 0;
-        static final int ITEM_HEIGHT = 12;
-        static final int SCROLLBAR_WIDTH = 4;
-
-        static void toggle() {
-            isOpen = !isOpen;
-            if (isOpen && SORTED_ENTITY_TYPES == null) {
-                loadEntityTypes();
-            }
-        }
-
-        static void loadEntityTypes() {
-            SORTED_ENTITY_TYPES = BuiltInRegistries.ENTITY_TYPE.stream()
-                    .filter(t -> t != EntityType.MARKER )
-                    .sorted(Comparator.comparing(BuiltInRegistries.ENTITY_TYPE::getKey))
-                    .collect(Collectors.toList());
-        }
-    }
-
-    private static final int BUTTON_SIZE = 12;
-    private static final int RESIZE_HANDLE_SIZE = 10;
-
-    // ==========================================
-    // 2. 渲染事件
-    // ==========================================
-
-    @SubscribeEvent
-    public static void onRenderGuiForeground(ContainerScreenEvent.Render.Foreground event) {
-        if (!(event.getContainerScreen() instanceof AbstractContainerScreen)) return;
-
-        if (!configLoaded) {
-            LayoutState.xOffset = ClientConfig.INSTANCE.xOffset.get();
-            LayoutState.yOffset = ClientConfig.INSTANCE.yOffset.get();
-            LayoutState.width = ClientConfig.INSTANCE.width.get();
-            LayoutState.height = ClientConfig.INSTANCE.height.get();
-            LayoutState.selectorWidth = ClientConfig.INSTANCE.selectorWidth.get();
-            PreviewState.scale = ClientConfig.INSTANCE.scale.get().floatValue();
-            configLoaded = true;
-        }
-
-        GuiGraphics guiGraphics = event.getGuiGraphics();
-        var screen = event.getContainerScreen();
-        int guiLeft = screen.getGuiLeft();
-        int guiTop = screen.getGuiTop();
-
-        int viewX = guiLeft + LayoutState.xOffset;
-        int viewY = guiTop + LayoutState.yOffset;
-        int viewW = LayoutState.width;
-        int viewH = LayoutState.height;
-
-        PoseStack pose = guiGraphics.pose();
-        pose.pushPose();
-        pose.translate(-guiLeft, -guiTop, 0);
-
-        // 1. 渲染主窗口
-        int borderColor = LayoutState.isEditMode ? 0xFFFFD700 : 0xFFFFFFFF;
-        guiGraphics.fill(viewX, viewY, viewX + viewW, viewY + viewH, 0xFF000000);
-        guiGraphics.renderOutline(viewX, viewY, viewW, viewH, borderColor);
-
-        if (LayoutState.isEditMode) {
-            int handleX = viewX + viewW - RESIZE_HANDLE_SIZE;
-            int handleY = viewY + viewH - RESIZE_HANDLE_SIZE;
-            guiGraphics.fill(handleX, handleY, viewX + viewW, viewY + viewH, 0xAAFFD700);
-        }
-
-        // 2. 3D 视口剪裁
-        guiGraphics.enableScissor(viewX + 1, viewY + 1, viewX + viewW - 1, viewY + viewH - 1);
-
-        Object target = renderTarget;
-        if (target == null) target = Minecraft.getInstance().player;
-
-        RenderSystem.backupProjectionMatrix();
-        try {
-            renderPreviewContent(guiGraphics, viewX + viewW / 2, viewY + viewH / 2, target);
-        } catch (Exception e) {
-            renderTarget = null;
-        } finally {
-            RenderSystem.restoreProjectionMatrix();
-            RenderSystem.disableDepthTest();
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        }
-
-        guiGraphics.disableScissor();
-
-        // 3. UI 按钮
-
-        // --- 编辑按钮 (E) ---
-        int editBtnX = viewX + viewW - BUTTON_SIZE - 2;
-        int editBtnY = viewY + 2;
-        boolean hoverEdit = isMouseOver(event.getMouseX(), event.getMouseY(), editBtnX, editBtnY, BUTTON_SIZE, BUTTON_SIZE);
-        guiGraphics.fill(editBtnX, editBtnY, editBtnX + BUTTON_SIZE, editBtnY + BUTTON_SIZE, LayoutState.isEditMode ? 0xFFFFAA00 : (hoverEdit ? 0xFFAAAAAA : 0xFF555555));
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, LayoutState.isEditMode ? "V" : "E", editBtnX + BUTTON_SIZE / 2 + 1, editBtnY + 2, 0xFFFFFF);
-
-        // --- [新增] 搜索按钮 (S) ---
-        // 放在编辑按钮的左边
-        int searchBtnX = editBtnX - BUTTON_SIZE - 2;
-        int searchBtnY = viewY + 2;
-        boolean hoverSearch = isMouseOver(event.getMouseX(), event.getMouseY(), searchBtnX, searchBtnY, BUTTON_SIZE, BUTTON_SIZE);
-        // 如果当前没有渲染目标(只有玩家自己)，则搜索按钮置灰不可用
-        boolean canSearch = renderTarget != null && !(renderTarget instanceof LocalPlayer); // 或者是具体的 EntityPlayer 判断
-
-        int searchColor = canSearch ? (hoverSearch ? 0xFF00AAFF : 0xFF0055AA) : 0xFF333333; // 蓝色系
-        guiGraphics.fill(searchBtnX, searchBtnY, searchBtnX + BUTTON_SIZE, searchBtnY + BUTTON_SIZE, searchColor);
-        // 绘制 'S' 或 '?'
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, "S", searchBtnX + BUTTON_SIZE / 2 + 1, searchBtnY + 2, canSearch ? 0xFFFFFF : 0x888888);
-
-        // --- 列表按钮 (L) ---
-        int listBtnX = viewX + 2;
-        int listBtnY = viewY + 2;
-        boolean hoverList = isMouseOver(event.getMouseX(), event.getMouseY(), listBtnX, listBtnY, BUTTON_SIZE, BUTTON_SIZE);
-        guiGraphics.fill(listBtnX, listBtnY, listBtnX + BUTTON_SIZE, listBtnY + BUTTON_SIZE, SelectorState.isOpen ? 0xFF00AA00 : (hoverList ? 0xFFAAAAAA : 0xFF555555));
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, "L", listBtnX + BUTTON_SIZE / 2 + 1, listBtnY + 2, 0xFFFFFF);
-
-        // 4. 渲染列表选择器
-        if (SelectorState.isOpen && SORTED_ENTITY_TYPES != null) {
-            renderEntitySelector(guiGraphics, viewX + viewW, viewY, LayoutState.selectorWidth, viewH, event.getMouseX(), event.getMouseY());
-        }
-
-        pose.popPose();
-    }
-
-
-    private static void renderPreviewContent(GuiGraphics guiGraphics, int x, int y, Object target) {
-        if (target == null) return;
-
-        if (target instanceof Entity e && BROKEN_ENTITIES.contains(e.getType())) {
-            guiGraphics.drawCenteredString(Minecraft.getInstance().font, "ERROR", x, y - 10, 0xFFFF0000);
-            return;
-        }
-
-        PoseStack poseStack = guiGraphics.pose();
-        poseStack.pushPose();
-
-        float safeZ = Math.max(250.0F, PreviewState.scale * 2.0F);
-
-        poseStack.translate(x + PreviewState.panX, y + PreviewState.panY, safeZ);
-
-        poseStack.mulPose(new Quaternionf().rotationXYZ(
-                (float) Math.toRadians(PreviewState.rotX),
-                (float) Math.toRadians(PreviewState.rotY),
-                0
-        ));
-        RenderSystem.enableDepthTest();
-
-        try {
-            if (target instanceof ItemStack itemStack) {
-                renderItemCustom(guiGraphics, poseStack, itemStack);
-            } else if (target instanceof Entity entity) {
-                renderEntityCustom(guiGraphics, poseStack, entity);
-            }
-        } catch (Throwable t) {
-            if (target instanceof Entity e) {
-                BROKEN_ENTITIES.add(e.getType());
-            }
-        } finally {
-            guiGraphics.flush();
-        }
-
-        RenderSystem.disableDepthTest();
-        poseStack.popPose();
-    }
-
-    private static void renderEntityCustom(GuiGraphics guiGraphics, PoseStack poseStack, Entity entity) {
-        float entityScale = PreviewState.scale;
-        poseStack.scale(entityScale, entityScale, -entityScale);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-
-        Lighting.setupForEntityInInventory();
-
-        float yBodyRotOld = 0, yRotOld, xRotOld, yHeadRotOOld = 0, yHeadRotOld = 0;
-        if (entity instanceof LivingEntity living) {
-            yBodyRotOld = living.yBodyRot;
-            yRotOld = living.getYRot();
-            xRotOld = living.getXRot();
-            yHeadRotOOld = living.yHeadRotO;
-            yHeadRotOld = living.yHeadRot;
-            living.yBodyRot = 0;
-            living.setYRot(0);
-            living.setXRot(0);
-            living.yHeadRot = 0;
-            living.yHeadRotO = 0;
-        } else {
-            yRotOld = entity.getYRot();
-            xRotOld = entity.getXRot();
-            entity.setYRot(0);
-            entity.setXRot(0);
-        }
-        EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        dispatcher.setRenderShadow(false);
-
-        try {
-            RenderSystem.runAsFancy(() -> {
-                dispatcher.render(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, poseStack, guiGraphics.bufferSource(), 0xF000F0);
-            });
-            guiGraphics.flush();
-        } catch (Exception ignored) {
-        } finally {
-            dispatcher.setRenderShadow(true);
-            if (entity instanceof LivingEntity living) {
-                living.yBodyRot = yBodyRotOld;
-                living.setYRot(yRotOld);
-                living.setXRot(xRotOld);
-                living.yHeadRotO = yHeadRotOOld;
-                living.yHeadRot = yHeadRotOld;
-            } else {
-                entity.setYRot(yRotOld);
-                entity.setXRot(xRotOld);
-            }
-            Lighting.setupFor3DItems();
-        }
-    }
-
-    private static void renderItemCustom(GuiGraphics guiGraphics, PoseStack poseStack, ItemStack itemStack) {
-        if (itemStack.isEmpty()) return;
-        float itemScale = PreviewState.scale * 2.0f;
-        poseStack.scale(itemScale, -itemScale, itemScale);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180));
-
-        Minecraft mc = Minecraft.getInstance();
-        Lighting.setupFor3DItems();
-
-        poseStack.pushPose();
-        BakedModel bakedModel = mc.getItemRenderer().getModel(itemStack, mc.level, mc.player, 0);
-        if (!bakedModel.isGui3d()) poseStack.translate(0, 0, -0.05f);
-
-        mc.getItemRenderer().render(itemStack, ItemDisplayContext.GROUND, false, poseStack, guiGraphics.bufferSource(), 0xF000F0, OverlayTexture.NO_OVERLAY, bakedModel);
-        guiGraphics.flush();
-
-        poseStack.popPose();
-    }
-
-    private static void renderEntitySelector(GuiGraphics guiGraphics, int x, int y, int w, int h, double mx, double my) {
-        guiGraphics.fill(x, y, x + w, y + h, 0xFF000000);
-        guiGraphics.renderOutline(x, y, w, h, 0xFF888888);
-
-        boolean hoverResize = mx >= x + w - 4 && mx <= x + w + 2 && my >= y && my <= y + h;
-        int dragColor = (LayoutState.isResizingSelector || hoverResize) ? 0xAAFFD700 : 0x00000000;
-        guiGraphics.fill(x + w - 3, y, x + w, y + h, dragColor);
-
-        guiGraphics.enableScissor(x, y + 1, x + w - 4, y + h - 1);
-
-        List<EntityType<?>> list = SORTED_ENTITY_TYPES;
-        int totalHeight = list.size() * SelectorState.ITEM_HEIGHT;
-
-        int maxScroll = Math.max(0, totalHeight - h);
-        if (SelectorState.scrollOffset < 0) SelectorState.scrollOffset = 0;
-        if (SelectorState.scrollOffset > maxScroll) SelectorState.scrollOffset = maxScroll;
-
-        int startIndex = (int) (SelectorState.scrollOffset / SelectorState.ITEM_HEIGHT);
-        int visibleCount = (h / SelectorState.ITEM_HEIGHT) + 2;
-
-        for (int i = startIndex; i < startIndex + visibleCount && i < list.size(); i++) {
-            EntityType<?> type = list.get(i);
-            int itemY = (int) (y + (i * SelectorState.ITEM_HEIGHT) - SelectorState.scrollOffset);
-
-            boolean isHovered = mx >= x && mx < x + w - 4 && my >= itemY && my < itemY + SelectorState.ITEM_HEIGHT;
-            if (isHovered) guiGraphics.fill(x + 1, itemY, x + w - 4, itemY + SelectorState.ITEM_HEIGHT, 0x40FFFFFF);
-
-            boolean isSelected = renderTarget instanceof Entity e && e.getType() == type;
-            boolean isBroken = BROKEN_ENTITIES.contains(type);
-
-            if (isSelected) guiGraphics.fill(x, itemY, x + 2, itemY + SelectorState.ITEM_HEIGHT, 0xFF00FF00);
-
-            Component name = type.getDescription();
-            int color = isBroken ? 0xFF5555 : (isSelected ? 0x00FF00 : (isHovered ? 0xFFFFFF : 0xAAAAAA));
-
-            String nameStr = Minecraft.getInstance().font.plainSubstrByWidth(name.getString(), w - 15);
-            if (isBroken) nameStr = "[X] " + nameStr;
-
-            guiGraphics.drawString(Minecraft.getInstance().font, nameStr, x + 5, itemY + 2, color, false);
-        }
-
-        guiGraphics.disableScissor();
-
-        if (totalHeight > h) {
-            int barHeight = (int) ((float) h / totalHeight * h);
-            if (barHeight < 10) barHeight = 10;
-            int barY = y + (int) ((SelectorState.scrollOffset / maxScroll) * (h - barHeight));
-            int barX = x + w - SelectorState.SCROLLBAR_WIDTH - 4;
-            guiGraphics.fill(barX, barY, barX + SelectorState.SCROLLBAR_WIDTH, barY + barHeight, 0xFF888888);
-        }
-    }
-
-    // ==========================================
-    // 5. 交互逻辑
-    // ==========================================
-
-    @SubscribeEvent
-    public static void onMousePressed(ScreenEvent.MouseButtonPressed.Pre event) {
-        if (!(event.getScreen() instanceof AbstractContainerScreen screen)) return;
-
-        double mx = event.getMouseX();
-        double my = event.getMouseY();
-        int viewX = screen.getGuiLeft() + LayoutState.xOffset;
-        int viewY = screen.getGuiTop() + LayoutState.yOffset;
-        int viewW = LayoutState.width;
-        int viewH = LayoutState.height;
-        int listX = viewX + viewW;
-
-        if (event.getButton() == 2) {
-            Slot hoveredSlot = screen.getSlotUnderMouse();
-            if (hoveredSlot != null && hoveredSlot.hasItem()) {
-                ItemStack stack = hoveredSlot.getItem();
-                if (stack.getItem() instanceof SpawnEggItem egg) {
-                    renderTarget = getCachedEntity(egg.getType(stack));
-                } else {
-                    renderTarget = stack.copy();
-                }
-                playSound();
-                event.setCanceled(true);
-                return;
-            }
-        }
-
-        if (SelectorState.isOpen && SORTED_ENTITY_TYPES != null) {
-            int listW = LayoutState.selectorWidth;
-
-            if (mx >= listX + listW - 4 && mx <= listX + listW + 2 && my >= viewY && my <= viewY + viewH) {
-                LayoutState.isResizingSelector = true;
-                event.setCanceled(true);
-                return;
-            }
-
-            if (mx >= listX && mx < listX + listW - 4 && my >= viewY && my < viewY + viewH) {
-                double relY = my - viewY + SelectorState.scrollOffset;
-                int index = (int) (relY / SelectorState.ITEM_HEIGHT);
-                if (index >= 0 && index < SORTED_ENTITY_TYPES.size()) {
-                    EntityType<?> type = SORTED_ENTITY_TYPES.get(index);
-                    if (!BROKEN_ENTITIES.contains(type)) {
-                        renderTarget = getCachedEntity(type);
-                    } else {
-                        renderTarget = null;
-                    }
-                    playSound();
-                }
-                event.setCanceled(true);
-                return;
-            }
-        }
-
-        // 列表按钮 (L)
-        int listBtnX = viewX + 2;
-        int listBtnY = viewY + 2;
-        if (isMouseOver(mx, my, listBtnX, listBtnY, BUTTON_SIZE, BUTTON_SIZE)) {
-            if (event.getButton() == 0) SelectorState.toggle();
-            else if (event.getButton() == 1) { renderTarget = null; PreviewState.reset(); }
-            playSound();
-            event.setCanceled(true);
-            return;
-        }
-
-        // 编辑按钮 (E)
-        int editBtnX = viewX + viewW - BUTTON_SIZE - 2;
-        int editBtnY = viewY + 2;
-        if (isMouseOver(mx, my, editBtnX, editBtnY, BUTTON_SIZE, BUTTON_SIZE)) {
-            LayoutState.isEditMode = !LayoutState.isEditMode;
-            playSound();
-            event.setCanceled(true);
-            return;
-        }
-
-        // --- [新增] 搜索按钮点击事件 (S) ---
-        int searchBtnX = editBtnX - BUTTON_SIZE - 2;
-        int searchBtnY = viewY + 2;
-        if (isMouseOver(mx, my, searchBtnX, searchBtnY, BUTTON_SIZE, BUTTON_SIZE)) {
-            performSearch(); // 执行搜索
-            playSound();
-            event.setCanceled(true);
-            return;
-        }
-
-        if (LayoutState.isEditMode) {
-            int handleX = viewX + viewW - RESIZE_HANDLE_SIZE;
-            int handleY = viewY + viewH - RESIZE_HANDLE_SIZE;
-            if (isMouseOver(mx, my, handleX, handleY, RESIZE_HANDLE_SIZE, RESIZE_HANDLE_SIZE)) {
-                LayoutState.isResizingWindow = true;
-                event.setCanceled(true);
-                return;
-            }
-            if (isMouseOver(mx, my, viewX, viewY, viewW, viewH)) {
-                LayoutState.isMovingWindow = true;
-                event.setCanceled(true);
-                return;
-            }
-        }
-        else {
-            if (isMouseOver(mx, my, viewX, viewY, viewW, viewH)) {
-                if (event.getButton() == 2) {
-                    PreviewState.reset();
-                    playSound();
-                } else {
-                    PreviewState.isManipulatingModel = true;
-                    PreviewState.dragType = event.getButton();
-                }
-                event.setCanceled(true);
-                return;
-            }
-        }
-    }
-
-    /**
-     * [新增] 执行搜索逻辑
-     * 根据当前 renderTarget 的类型(ItemStack/Entity)获取注册名，并打开浏览器。
-     */
-    private static void performSearch() {
-        if (renderTarget == null) return;
-
-        String query = null;
-
-        try {
-            if (renderTarget instanceof ItemStack stack) {
-                if (stack.isEmpty()) return;
-                // 获取 Registry Name 的路径部分 (例如: minecraft:diamond_sword -> diamond_sword)
-                query = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-            } else if (renderTarget instanceof Entity entity) {
-                // 获取 Entity Registry Name 的路径部分 (例如: minecraft:creeper -> creeper)
-                query = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).getPath();
-            }
-        } catch (Exception e) {
-            // 忽略异常，防止奔溃
-        }
-
-        if (query != null && !query.isEmpty()) {
-            try {
-                // 构造 MCMOD 搜索链接
-                String url = "https://search.mcmod.cn/s?key=" + query;
-                Util.getPlatform().openUri(new URI(url));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public static void onMouseReleased(ScreenEvent.MouseButtonReleased.Pre event) {
-        LayoutState.isMovingWindow = false;
-        LayoutState.isResizingWindow = false;
-        LayoutState.isResizingSelector = false;
-        PreviewState.isManipulatingModel = false;
-    }
-
-    @SubscribeEvent
-    public static void onMouseDragged(ScreenEvent.MouseDragged.Pre event) {
-        if (LayoutState.isResizingSelector) {
-            LayoutState.selectorWidth += (int) event.getDragX();
-            if (LayoutState.selectorWidth < 60) LayoutState.selectorWidth = 60;
-            if (LayoutState.selectorWidth > 400) LayoutState.selectorWidth = 400;
-            return;
-        }
-
-        if (LayoutState.isEditMode) {
-            if (LayoutState.isMovingWindow) {
-                LayoutState.xOffset += (int) event.getDragX();
-                LayoutState.yOffset += (int) event.getDragY();
-            } else if (LayoutState.isResizingWindow) {
-                LayoutState.width += (int) event.getDragX();
-                LayoutState.height += (int) event.getDragY();
-                if (LayoutState.width < LayoutState.MIN_WIDTH) LayoutState.width = LayoutState.MIN_WIDTH;
-                if (LayoutState.height < LayoutState.MIN_HEIGHT) LayoutState.height = LayoutState.MIN_HEIGHT;
-            }
-        } else if (PreviewState.isManipulatingModel) {
-            if (PreviewState.dragType == 0) {
-                PreviewState.rotY += (float) event.getDragX();
-                PreviewState.rotX += (float) event.getDragY();
-            } else if (PreviewState.dragType == 1) {
-                PreviewState.panX += (float) event.getDragX();
-                PreviewState.panY += (float) event.getDragY();
-            }
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onMouseScrolled(ScreenEvent.MouseScrolled.Pre event) {
-        if (!(event.getScreen() instanceof AbstractContainerScreen screen)) return;
-        int viewX = screen.getGuiLeft() + LayoutState.xOffset;
-        int viewY = screen.getGuiTop() + LayoutState.yOffset;
-        double mx = event.getMouseX();
-        double my = event.getMouseY();
-
-        if (SelectorState.isOpen) {
-            int listX = viewX + LayoutState.width;
-            if (isMouseOver(mx, my, listX, viewY, LayoutState.selectorWidth, LayoutState.height)) {
-                double scrollY = event.getScrollDeltaY();
-                SelectorState.scrollOffset -= (float) (scrollY * SelectorState.ITEM_HEIGHT);
-                event.setCanceled(true);
-                return;
-            }
-        }
-        if (isMouseOver(mx, my, viewX, viewY, LayoutState.width, LayoutState.height) && !LayoutState.isEditMode) {
-
-            double scrollY = event.getScrollDeltaY();
-            if (scrollY != 0) {
-                PreviewState.scale += (float) (scrollY * 2.0f);
-                if (PreviewState.scale < 1) PreviewState.scale = 1;
-                if (PreviewState.scale > 500) PreviewState.scale = 500;
-            }
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onGuiClosed(ScreenEvent.Closing event) {
-        if (event.getScreen() instanceof AbstractContainerScreen) {
-            ClientConfig.INSTANCE.xOffset.set(LayoutState.xOffset);
-            ClientConfig.INSTANCE.yOffset.set(LayoutState.yOffset);
-            ClientConfig.INSTANCE.width.set(LayoutState.width);
-            ClientConfig.INSTANCE.height.set(LayoutState.height);
-            ClientConfig.INSTANCE.scale.set((double) PreviewState.scale);
-            ClientConfig.INSTANCE.selectorWidth.set(LayoutState.selectorWidth);
-            ClientConfig.SPEC.save();
-        }
-    }
-
-    private static Entity getCachedEntity(EntityType<?> type) {
-        if (Minecraft.getInstance().level == null) return null;
-        return ENTITY_CACHE.computeIfAbsent(type, t -> {
-            try { return t.create(Minecraft.getInstance().level); } catch (Exception e) { return null; }
-        });
-    }
-
-    private static boolean isMouseOver(double mouseX, double mouseY, int x, int y, int width, int height) {
-        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
-    }
-
-    private static void playSound() {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 }

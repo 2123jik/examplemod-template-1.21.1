@@ -170,8 +170,8 @@ public class SpellEffectAffix extends Affix {
         return comp;
     }
 
-    public static record EffectData(StepFunction duration, StepFunction amplifier, int cooldown) {
-        private static Codec<EffectData> CODEC = RecordCodecBuilder.create(inst -> inst
+    public record EffectData(StepFunction duration, StepFunction amplifier, int cooldown) {
+        private static final Codec<EffectData> CODEC = RecordCodecBuilder.create(inst -> inst
                 .group(
                         StepFunction.CODEC.fieldOf("duration").forGetter(EffectData::duration),
                         StepFunction.CODEC.fieldOf("amplifier").forGetter(EffectData::amplifier),

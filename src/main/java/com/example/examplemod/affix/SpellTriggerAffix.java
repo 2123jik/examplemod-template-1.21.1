@@ -45,10 +45,6 @@ public class SpellTriggerAffix extends Affix {
     // 例如：法术造成伤害 -> 触发 SPELL_DAMAGE -> 再次施法 -> 再次造成伤害...
     private static final ThreadLocal<Boolean> IS_TRIGGERING = ThreadLocal.withInitial(() -> false);
 
-    public static boolean isCurrentlyTriggering() {
-        return IS_TRIGGERING.get();
-    }
-
     // 定义 JSON 数据结构 (Codec)
     public static final Codec<SpellTriggerAffix> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(

@@ -80,7 +80,7 @@ public class AffixEventHandler {
         }
 
         // 如果满足传送条件，将所有掉落物移动到目标位置
-        if (canTeleport && targetPos != null) {
+        if (canTeleport) {
             for (ItemEntity item : e.getDrops()) {
                 item.setPos(targetPos.x, targetPos.y, targetPos.z);
                 item.setPickUpDelay(0); // 设置拾取延迟为0，方便立刻吸入

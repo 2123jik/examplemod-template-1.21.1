@@ -6,6 +6,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -52,7 +53,7 @@ public class EatenFoods implements IEatenFoods, INBTSerializable<CompoundTag> {
     }
 
     @Override
-    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+    public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
         CompoundTag nbt = new CompoundTag();
         ListTag listTag = new ListTag();
         for (ItemStack stack : this.eatenFoods) {
@@ -67,7 +68,7 @@ public class EatenFoods implements IEatenFoods, INBTSerializable<CompoundTag> {
      * 当旧存档（包含1000个苹果）加载时，这里会把它变成1个苹果。
      */
     @Override
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
         this.eatenFoods.clear();
         ListTag listTag = nbt.getList("EatenFoodsList", CompoundTag.TAG_COMPOUND);
 

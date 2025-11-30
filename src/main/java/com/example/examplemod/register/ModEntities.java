@@ -2,10 +2,12 @@ package com.example.examplemod.register;
 
 import com.example.examplemod.ExampleMod;
 import com.example.examplemod.entity.GoldenGateEntity;
+import com.example.examplemod.entity.SkyDolphin;
 import com.example.examplemod.entity.SwordProjectileEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.animal.Dolphin;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -46,6 +48,10 @@ public class ModEntities {
                     .clientTrackingRange(8)     // 客户端追踪距离：8个区块（128米）。超过这个距离客户端将不会渲染或同步该实体。
                     .updateInterval(20)         // 更新间隔：每 20 tick (1秒) 同步一次位置/数据到客户端（投射物通常设得比较低，如 1-10，这里 20 可能略高，视需求而定）
                     .build("sword_projectile"));
+    public static final Supplier<EntityType<SkyDolphin> >SKY_DOLPHIN = ENTITY_TYPES.register(
+            "sky_dolphin",
+            ()->EntityType.Builder.of
+                    (SkyDolphin::new,MobCategory.MISC).sized(0.9F, 0.6F).eyeHeight(0.3F).build("sky_dolphin"));
 
     /**
      * 将实体注册表注册到事件总线

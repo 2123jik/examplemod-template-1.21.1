@@ -1,5 +1,6 @@
 package com.example.examplemod.server;
 
+import com.example.examplemod.ExampleMod;
 import com.example.examplemod.accessors.SpellHealEventAccessor;
 import com.example.examplemod.capability.IEatenFoods;
 import com.example.examplemod.capability.ModCapabilities;
@@ -21,13 +22,20 @@ import dev.xkmc.l2hostility.content.capability.player.PlayerDifficulty;
 import dev.xkmc.l2hostility.events.HostilityInitEvent;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import dev.xkmc.modulargolems.content.entity.common.AbstractGolemEntity;
-import io.redspace.ironsspellbooks.api.events.*;
+
+import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
+import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
+import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.capabilities.magic.SpellContainer;
 import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
+import io.redspace.ironsspellbooks.entity.mobs.goals.WizardAttackGoal;
+import io.redspace.ironsspellbooks.entity.mobs.necromancer.NecromancerEntity;
 import io.redspace.ironsspellbooks.spells.lightning.ChainLightningSpell;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -35,6 +43,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -43,21 +52,25 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.StructureTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ambient.Bat;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.item.armortrim.TrimMaterial;
@@ -75,6 +88,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
@@ -82,17 +96,21 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.living.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.jline.utils.Log;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -104,6 +122,7 @@ import static com.example.examplemod.component.ModDataComponents.*;
 import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
 import static dev.shadowsoffire.apothic_attributes.api.ALObjects.DamageTypes.*;
 import static fuzs.enderzoology.init.ModRegistry.SOULBOUND_ENCHANTMENT;
+
 import static io.redspace.ironsspellbooks.damage.ISSDamageTypes.*;
 import static io.redspace.ironsspellbooks.registries.ComponentRegistry.SPELL_CONTAINER;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL;
@@ -725,7 +744,7 @@ public class ServerEventHandler {
         @SubscribeEvent
         public static void onBedrockPlace(BlockEvent.EntityPlaceEvent event) {
             if (event.getState().is(Blocks.BEDROCK)) {
-                ItemStack itemStack = new ItemStack((ItemLike) GIANT_SWORD.get());
+                ItemStack itemStack = new ItemStack(GIANT_SWORD.get());
                 itemStack.set(DataComponents.LORE, ItemLore.EMPTY.withLineAdded(Component.literal("下次攻击伤害修正+200%，但经验等级-2并持续2分钟虚弱II")));
 
                 if (event.getEntity() instanceof Player player) {
@@ -977,6 +996,209 @@ public class ServerEventHandler {
                 }
             }
             return 0;
+        }
+    }
+    @EventBusSubscriber(modid = MODID)
+    public static class AI{
+        @SubscribeEvent
+        public static void onEntityJoin(EntityJoinLevelEvent event) {
+            // 1. 判断是否为服务端的死灵法师
+            if (event.getLevel().isClientSide() || !(event.getEntity() instanceof NecromancerEntity necromancer)) {
+                return;
+            }
+
+            // 2. 移除原有的 WizardAttackGoal
+            // 因为源码中是这样添加的: this.goalSelector.addGoal(4, new WizardAttackGoal(...));
+            // 我们需要遍历 goalSelector 找到它并移除。
+
+            // 用于存储需要移除的目标
+            List<Goal> goalsToRemove = new ArrayList<>();
+
+            necromancer.goalSelector.getAvailableGoals().forEach(wrappedGoal -> {
+                // 判断这个 goal 是否是 WizardAttackGoal
+                if (wrappedGoal.getGoal() instanceof WizardAttackGoal) {
+                    goalsToRemove.add(wrappedGoal.getGoal());
+                }
+            });
+
+            // 执行移除
+            goalsToRemove.forEach(necromancer.goalSelector::removeGoal);
+
+            // 3. 添加自定义的 Goal (使用你想要的法术)
+            // 假设你想让它只放火球术 (Fireball) 和 电击 (Lightning Bolt)
+
+            WizardAttackGoal customMagicGoal = new WizardAttackGoal(necromancer, 1.25F, 35, 80)
+                    .setSpells(
+                            // 攻击类法术列表
+                            List.of(
+                                    SpellRegistry.FIREBALL_SPELL.get(),
+                                    SpellRegistry.LIGHTNING_LANCE_SPELL.get()
+                            ),
+                            // 防御类法术列表 (比如护盾)
+                            List.of(SpellRegistry.SHIELD_SPELL.get()),
+                            // 移动类法术列表 (比如瞬移)
+                            List.of(),
+                            // 其他控制类
+                            List.of()
+                    )
+                    .setDrinksPotions(); // 让它依然会喝药水
+
+            // 添加回去，建议保持原有的优先级 (源码中是 4)
+            necromancer.goalSelector.addGoal(4, customMagicGoal);
+        }
+    }
+
+    @EventBusSubscriber(modid = ExampleMod.MODID)
+    public static class MobDropHandler {
+
+        // 缓存食物列表，避免每次击杀都遍历注册表
+        private static final List<Item> FOOD_CACHE = new ArrayList<>();
+        private static final Random RANDOM = new Random();
+
+        // 基础掉落率 (例如 5%)
+        private static final double BASE_DROP_CHANCE = 0.1;
+        // 复杂度惩罚系数 (越高则复杂物品掉落率衰减越快)
+        private static final double COMPLEXITY_PENALTY = 0.5;
+
+        @SubscribeEvent
+        public static void onLivingDrops(LivingDropsEvent event) {
+            // 1. 仅针对敌对生物 (实现 Enemy 接口的实体，如僵尸、骷髅等)
+            if (!(event.getEntity() instanceof Enemy)) {
+                return;
+            }
+
+            // 2. 初始化缓存 (如果是第一次运行)
+            if (FOOD_CACHE.isEmpty()) {
+                initFoodCache();
+            }
+
+            // 3. 随机选取一个食物
+            if (FOOD_CACHE.isEmpty()) return;
+            Item randomFood = FOOD_CACHE.get(RANDOM.nextInt(FOOD_CACHE.size()));
+            ItemStack foodStack = randomFood.getDefaultInstance();
+
+            // 4. 计算 DataComponent 复杂度
+            // 在 1.21+ 中，getComponents() 返回该物品挂载的所有组件映射表
+            int componentCount = foodStack.getComponents().size();
+
+            // 5. 计算最终掉落率
+            // 公式逻辑：基础概率 / (1 + (组件数 * 惩罚系数))
+            // 例如：
+            //   普通苹果 (组件少) -> 0.05 / (1 + 2*0.5) = 0.025 (2.5%)
+            //   附魔金苹果 (组件多) -> 0.05 / (1 + 10*0.5) = 0.008 (0.8%)
+            double finalChance = BASE_DROP_CHANCE / (1.0 + (componentCount * COMPLEXITY_PENALTY));
+
+            // 6. 执行掉落逻辑
+            if (RANDOM.nextDouble() < finalChance) {
+                // 创建掉落物实体
+                ItemEntity drop = new ItemEntity(
+                        event.getEntity().level(),
+                        event.getEntity().getX(),
+                        event.getEntity().getY(),
+                        event.getEntity().getZ(),
+                        foodStack
+                );
+
+                // 设置掉落物无拾取延迟 (可选)
+                drop.setPickUpDelay(10);
+
+                // 添加到事件的掉落列表
+                event.getDrops().add(drop);
+            }
+        }
+
+        // 辅助方法：遍历注册表筛选食物
+        private static void initFoodCache() {
+            for (Item item : BuiltInRegistries.ITEM) {
+                // 检查物品默认实例是否包含 FOOD 组件
+                if (item.getDefaultInstance().has(DataComponents.FOOD)) {
+                    FOOD_CACHE.add(item);
+                }
+            }
+        }
+    }
+    @EventBusSubscriber
+    public static class KineticDamageHandler
+    {
+        private static final double MIN_VELOCITY_THRESHOLD = 0.08;
+        private static final double REFERENCE_KINETIC_ENERGY = 0.0138;
+        private static final double CONVERSION_FACTOR = 0.6;
+
+        private static final Map<Integer, Vec3> VELOCITY_CACHE = new ConcurrentHashMap<>();
+
+        @SubscribeEvent
+        public static void onEntityTick(EntityTickEvent.Post event) {
+            Entity entity = event.getEntity();
+            // 优化：只记录生物和投掷物/箭矢，忽略掉落物、画框等无关实体
+            if (entity instanceof LivingEntity || entity instanceof Projectile) {
+                VELOCITY_CACHE.put(entity.getId(), entity.getDeltaMovement());
+            }
+        }
+
+        @SubscribeEvent
+        public static void onEntityLeave(EntityLeaveLevelEvent event) {
+            VELOCITY_CACHE.remove(event.getEntity().getId());
+        }
+
+        @SubscribeEvent
+        public static void onLivingDamage(LivingDamageEvent.Pre event) {
+            Entity directAttacker = event.getSource().getDirectEntity();
+            LivingEntity victim = event.getEntity();
+
+            if (directAttacker == null || directAttacker == victim) return;
+
+            Vec3 vAttacker = calculateRealVelocityVector(directAttacker);
+            Vec3 vVictim = calculateRealVelocityVector(victim);
+
+            Vec3 vRelative = vAttacker.subtract(vVictim);
+            double impactSpeed = vRelative.length();
+
+            if (impactSpeed < MIN_VELOCITY_THRESHOLD) return;
+
+            double mAttacker = calculateMass(directAttacker);
+            double mVictim = calculateMass(victim);
+
+            double reducedMass = (mAttacker * mVictim) / (mAttacker + mVictim);
+
+            double rawEnergy = 0.5 * reducedMass * Math.pow(impactSpeed, 2);
+
+            double kbResistance = 0.0;
+            if (victim.getAttributes().hasAttribute(Attributes.KNOCKBACK_RESISTANCE)) {
+                kbResistance = victim.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+            }
+
+            double resistanceFactor = 1.0 / (1.0 + (kbResistance * 3.0));
+            double effectiveEnergy = rawEnergy * resistanceFactor;
+
+            double bonusMultiplier = (effectiveEnergy / REFERENCE_KINETIC_ENERGY) * CONVERSION_FACTOR;
+            float finalMultiplier = 1.0f + (float) bonusMultiplier;
+
+            float originalDamage = event.getNewDamage();
+            float newDamage = originalDamage * finalMultiplier;
+
+            event.setNewDamage(newDamage);
+        }
+
+        private static Vec3 calculateRealVelocityVector(Entity entity) {
+            if (entity == null) return Vec3.ZERO;
+            Entity mover = entity.getVehicle() != null ? entity.getVehicle() : entity;
+
+            Vec3 vCache = VELOCITY_CACHE.getOrDefault(mover.getId(), Vec3.ZERO);
+            Vec3 vCurrent = mover.getDeltaMovement();
+            Vec3 vPosDiff = new Vec3(mover.getX() - mover.xOld, mover.getY() - mover.yOld, mover.getZ() - mover.zOld);
+            Vec3 bestV = vCurrent;
+            if (vCache.lengthSqr() > bestV.lengthSqr()) bestV = vCache;
+            if (vPosDiff.lengthSqr() > bestV.lengthSqr()) bestV = vPosDiff;
+
+            return bestV;
+        }
+
+        private static double calculateMass(Entity entity) {
+            double width = entity.getBbWidth();
+            double height = entity.getBbHeight();
+            double volume = width * width * height;
+
+            return Math.max(0.01, volume);
         }
     }
 }
