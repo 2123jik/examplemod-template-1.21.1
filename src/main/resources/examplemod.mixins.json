@@ -21,6 +21,7 @@
     "vanilla.ChestBlockEntityMixin",
     "vanilla.CompassItemMixin",
     "vanilla.FoodDataMixin",
+    "vanilla.ForceKillMixin",
     "vanilla.HealOrHarmMobEffectMixin",
     "vanilla.LootTableMixin",
     "vanilla.MixinLevel",

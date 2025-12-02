@@ -1,0 +1,44 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 10,
+      "quality": 0.5
+    },
+    "exclusive_set": []
+  },
+  "spell": "examplemod:custom_flaming_strike",
+  "trigger": "MELEE_HIT",
+  "target": "TARGET",
+  "values": {
+    "apotheosis:rare": {
+      "level": {
+        "min": 1,
+        "steps": 2,
+        "step": 1
+      },
+      "cooldown": 220
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 1,
+        "steps": 3,
+        "step": 1
+      },
+      "cooldown": 200
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 1,
+        "steps": 4,
+        "step": 1
+      },
+      "cooldown": 180
+    }
+  },
+  "types": [
+    "apotheosis:melee_weapon",
+    "examplemod:staff"
+  ]
+}

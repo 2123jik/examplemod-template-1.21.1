@@ -25,7 +25,7 @@ public class RangedAttributeMixin {
                 max == 1024.0 ||
                 max == 2048.0
         ) {
-            return max * 1000.0;
+            return Math.min(Double.MAX_VALUE, max*100000000) ;
         }
         // 对于其他属性，保持原样
         return max;
