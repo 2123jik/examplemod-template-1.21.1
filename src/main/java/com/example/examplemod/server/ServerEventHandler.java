@@ -2,8 +2,6 @@ package com.example.examplemod.server;
 
 import com.example.examplemod.ExampleMod;
 import com.example.examplemod.accessors.SpellHealEventAccessor;
-import com.example.examplemod.capability.IEatenFoods;
-import com.example.examplemod.capability.ModCapabilities;
 import com.example.examplemod.component.SpellBonusData;
 import com.example.examplemod.server.effect.MakenPowerEffect;
 import com.example.examplemod.util.AttributeHelper;
@@ -16,9 +14,7 @@ import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.apothic_attributes.payload.CritParticlePayload;
 import dev.shadowsoffire.placebo.events.AnvilLandEvent;
 import dev.xkmc.l2core.capability.attachment.GeneralCapabilityHolder;
-import dev.xkmc.l2core.capability.player.PlayerCapabilityHolder;
 import dev.xkmc.l2hostility.content.capability.mob.MobTraitCap;
-import dev.xkmc.l2hostility.content.capability.player.PlayerDifficulty;
 import dev.xkmc.l2hostility.events.HostilityInitEvent;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import dev.xkmc.modulargolems.content.entity.common.AbstractGolemEntity;
@@ -35,7 +31,6 @@ import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
 import io.redspace.ironsspellbooks.entity.mobs.goals.WizardAttackGoal;
 import io.redspace.ironsspellbooks.entity.mobs.necromancer.NecromancerEntity;
 import io.redspace.ironsspellbooks.spells.lightning.ChainLightningSpell;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -52,7 +47,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.StructureTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -62,14 +56,10 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ambient.Bat;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.warden.Warden;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.armortrim.ArmorTrim;
@@ -83,7 +73,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
@@ -93,7 +82,6 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -101,10 +89,8 @@ import net.neoforged.neoforge.event.entity.living.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
-import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import org.jline.utils.Log;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -117,7 +103,7 @@ import java.util.function.Predicate;
 import static com.bobmowzie.mowziesmobs.server.item.ItemHandler.WROUGHT_AXE;
 import static com.bobmowzie.mowziesmobs.server.item.ItemHandler.WROUGHT_HELMET;
 import static com.example.examplemod.ExampleMod.MODID;
-import static com.example.examplemod.ExampleMod.modResourceLoc;
+import static com.example.examplemod.ExampleMod.modrl;
 import static com.example.examplemod.component.ModDataComponents.*;
 import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
 import static dev.shadowsoffire.apothic_attributes.api.ALObjects.DamageTypes.*;
@@ -136,6 +122,7 @@ import static twilightforest.init.TFItems.GIANT_SWORD;
  */
 public class ServerEventHandler {
 
+
     private static final Random RANDOM = new Random();
 
     // =================================================================
@@ -143,14 +130,14 @@ public class ServerEventHandler {
     // =================================================================
 
     private static final String SPELL_CAST_COUNT_TAG = "Examplemod_SpellCounts";
-    private static final ResourceLocation ATTACK_DAMAGE_GROWTH_ID = modResourceLoc( "weapon_growth_bonus");
+    private static final ResourceLocation ATTACK_DAMAGE_GROWTH_ID = modrl( "weapon_growth_bonus");
 
     // Maken 装备各部位生命值成长 AttributeModifier 的 ID
     private static final Map<EquipmentSlot, ResourceLocation> HEALTH_GROWTH_IDS = ImmutableMap.of(
-            EquipmentSlot.HEAD, modResourceLoc( "max_health_head"),
-            EquipmentSlot.CHEST, modResourceLoc( "max_health_chest"),
-            EquipmentSlot.LEGS, modResourceLoc( "max_health_legs"),
-            EquipmentSlot.FEET, modResourceLoc( "max_health_feet")
+            EquipmentSlot.HEAD, modrl( "max_health_head"),
+            EquipmentSlot.CHEST, modrl( "max_health_chest"),
+            EquipmentSlot.LEGS, modrl( "max_health_legs"),
+            EquipmentSlot.FEET, modrl( "max_health_feet")
     );
 
     // 特殊的盔甲纹饰材料列表（红石、钻石等）
@@ -231,10 +218,6 @@ public class ServerEventHandler {
     @EventBusSubscriber(modid = MODID)
     public static class RegistrationEvents {
 
-        @SubscribeEvent
-        public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-            ModCapabilities.register(event);
-        }
 
         /**
          * 修改原版物品的默认组件，例如增加堆叠上限
@@ -293,50 +276,7 @@ public class ServerEventHandler {
             }
         }
 
-        /**
-         * 玩家死亡/维度切换时的数据复制
-         */
-        @SubscribeEvent
-        public static void onPlayerClone(PlayerEvent.Clone event) {
-            if (event.isWasDeath()) {
-                IEatenFoods oldCap = event.getOriginal().getCapability(ModCapabilities.EATEN_FOODS_CAPABILITY);
-                IEatenFoods newCap = event.getEntity().getCapability(ModCapabilities.EATEN_FOODS_CAPABILITY);
 
-                if (oldCap != null && newCap != null) {
-                    newCap.copyFrom(oldCap);
-                }
-            }
-        }
-
-        /**
-         * 玩家进食：首次食用某种食物给予经验奖励
-         */
-        @SubscribeEvent
-        public static void onPlayerFinishUsingItem(LivingEntityUseItemEvent.Finish event) {
-            if (event.getEntity() instanceof Player player && event.getItem().has(DataComponents.FOOD)) {
-                IEatenFoods cap = player.getCapability(ModCapabilities.EATEN_FOODS_CAPABILITY);
-
-                if (cap != null) {
-                    ItemStack currentFood = event.getItem();
-                    // 如果是新食物，给予奖励
-                    if (!cap.hasEaten(currentFood)) {
-                        if (!player.level().isClientSide()) {
-                            // 计算经验值：基础100 + 难度缩放
-                            int xpValue = 100;
-                            PlayerDifficulty capPD = (PlayerDifficulty)((PlayerCapabilityHolder)LHMiscs.PLAYER.type()).getOrCreate(player);
-                            int bonusXp = (int)(xpValue * (1 + 0.01 * capPD.getLevel(player).getLevel()));
-
-                            net.minecraft.world.entity.ExperienceOrb orb = new net.minecraft.world.entity.ExperienceOrb(
-                                    player.level(), player.getX(), player.getY() + 0.5, player.getZ(), bonusXp
-                            );
-                            player.level().addFreshEntity(orb);
-                        }
-                        // 记录已食用
-                        cap.addFood(currentFood);
-                    }
-                }
-            }
-        }
 
         // --- 私有辅助方法 ---
 
@@ -635,7 +575,7 @@ public class ServerEventHandler {
                 double bonusValue = player.getMainHandItem().getOrDefault(MAKEN_SWORD.get(), 0.0);
                 float explosionRadius = (float) (player.getMaxHealth() + bonusValue);
                 // 死亡时产生爆炸
-                Explosion explosion = new Explosion(player.level(), player, player.getX(), player.getY(), player.getZ(), explosionRadius, true, Explosion.BlockInteraction.DESTROY);
+                Explosion explosion = new Explosion(player.level(), player, player.getX(), player.getY(), player.getZ(), explosionRadius, false, Explosion.BlockInteraction.KEEP);
                 explosion.explode();
                 explosion.finalizeExplosion(true);
             }
@@ -731,6 +671,8 @@ public class ServerEventHandler {
         }
     }
 
+
+
     // =================================================================
     //                      5. 方块与环境交互事件
     // =================================================================
@@ -804,19 +746,7 @@ public class ServerEventHandler {
             return false;
         }
 
-        /**
-         * 修改村民交易
-         */
-        @SubscribeEvent
-        public static void modifyVillagerTrades(VillagerTradesEvent event) {
-            // 牧羊人 (SHEPHERD)
-            if (event.getType() == VillagerProfession.SHEPHERD) {
-                // Level 1: 用绿宝石买钻石 (福利交易)
-                event.getTrades().get(1).add(new VillagerTrades.ItemsForEmeralds(Items.DIAMOND, 5, 1, 12, 2));
-                // Level 2: 用石头换绿宝石
-                event.getTrades().get(2).add(new VillagerTrades.EmeraldForItems(Blocks.STONE, 32, 16, 10));
-            }
-        }
+
     }
 
     // =================================================================
@@ -1056,7 +986,7 @@ public class ServerEventHandler {
         private static final Random RANDOM = new Random();
 
         // 基础掉落率 (例如 5%)
-        private static final double BASE_DROP_CHANCE = 0.1;
+        private static final double BASE_DROP_CHANCE = 0.31;
         // 复杂度惩罚系数 (越高则复杂物品掉落率衰减越快)
         private static final double COMPLEXITY_PENALTY = 0.5;
 
@@ -1071,6 +1001,7 @@ public class ServerEventHandler {
             if (FOOD_CACHE.isEmpty()) {
                 initFoodCache();
             }
+
 
             // 3. 随机选取一个食物
             if (FOOD_CACHE.isEmpty()) return;
@@ -1199,6 +1130,31 @@ public class ServerEventHandler {
             double volume = width * width * height;
 
             return Math.max(0.01, volume);
+        }
+    }
+    @SubscribeEvent
+    public static void onEntityTick(EntityTickEvent.Pre event) {
+        Entity entity = event.getEntity();
+
+        // 1. 仅在服务端运行逻辑 (客户端不需要负责删除实体)
+        if (entity.level().isClientSide) return;
+
+        // 2. 检查是否有我们标记的 NBT 数据
+        var nbt = entity.getPersistentData();
+        if (nbt.contains("KillDelay")) {
+            int timer = nbt.getInt("KillDelay");
+
+            // 3. 倒计时逻辑
+            timer--;
+
+            if (timer <= 0) {
+                // 时间到，删除实体
+                entity.discard();
+                // 注：高版本 NeoForge 也可用 entity.remove(Entity.RemovalReason.DISCARDED);
+            } else {
+                // 更新剩余时间
+                nbt.putInt("KillDelay", timer);
+            }
         }
     }
 }

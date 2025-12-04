@@ -1,5 +1,21 @@
 {
   "values": {
-    "modulargolems:diamond_golem_spear": "apotheosis:melee_weapon"
+    "modulargolems:diamond_golem_spear": "apotheosis:melee_weapon",
+    "#l2artifacts:head": "examplemod:head",
+    "#l2artifacts:body": "examplemod:body",
+    "#l2artifacts:bracelet": "examplemod:bracelet",
+    "#l2artifacts:belt": "examplemod:belt",
+    "#l2artifacts:necklace": "examplemod:necklace",
+    "#curios:head": "examplemod:head",
+    "#curios:body": "examplemod:body",
+    "#curios:bracelet": "examplemod:bracelet",
+    "#curios:belt": "examplemod:belt",
+    "#curios:necklace": "examplemod:necklace",
+    "#curios:back": "examplemod:back",
+    "#curios:hands": "examplemod:hands",
+    "#curios:spellbook": "examplemod:spellbook",
+    "#curios:ring": "examplemod:ring",
+    "#curios:charm": "examplemod:charm",
+    "#irons_spellbooks:staff": "examplemod:staff"
   }
 }

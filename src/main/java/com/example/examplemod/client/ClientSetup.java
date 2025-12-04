@@ -5,6 +5,8 @@ import com.example.examplemod.client.entity.GoldenGateRenderer;
 import com.example.examplemod.client.entity.SwordProjectileRenderer;
 
 
+import com.example.examplemod.client.particle.BlackHoleParticle;
+import com.example.examplemod.client.particle.ModParticles;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
 import com.example.examplemod.register.ModEntities;
@@ -61,7 +63,14 @@ public class ClientSetup {
         event.registerEntityRenderer(GOLDENGATEENTITY.get(), GoldenGateRenderer::new);
         event.registerEntityRenderer(ModEntities.SWORD_PROJECTILE.get(), SwordProjectileRenderer::new);
     }
-
+    @SubscribeEvent
+    public static void registerParticles(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ModParticles.BLACK_HOLE_MATTER.get(),
+                // 注意：因为我们是 CUSTOM 渲染，不使用贴图，但 Forge 注册通常需要一个 dummy sprite set
+                // 如果报错，可以传入一个空实现，或者仅仅注册 Provider 不带 SpriteSet
+                (spriteSet) -> new BlackHoleParticle.Provider()
+        );
+    }
     @EventBusSubscriber(modid = ExampleMod.MODID,value = Dist.CLIENT)
     public static class ChestScreenOverlay {
         @SubscribeEvent
@@ -166,7 +175,7 @@ public class ClientSetup {
         public static final VertexFormat vertexFormat=VertexFormat.builder()
                 .add("Position", VertexFormatElement.POSITION)
                 .add("Color", VertexFormatElement.COLOR)
-                .add("Normal",VertexFormatElement.NORMAL)
+//                .add("Normal",VertexFormatElement.NORMAL)
                 .add("UV2", VertexFormatElement.UV2)
                 .build();
         public static RenderType custom = RenderType.create(

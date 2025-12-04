@@ -77,7 +77,12 @@ public class ManaCostAffix extends Affix {
     @Override
     public boolean canApplyTo(ItemStack stack, LootCategory cat, LootRarity rarity) {
         // 1. 硬性限制：只能应用在法杖 (STAFF)、近战武器 (MELEE_WEAPON) 或 法术书 (SPELLBOOK) 上
-        if (cat != LootCategories.STAFF && cat != Apoth.LootCategories.MELEE_WEAPON  && cat != LootCategories.SPELLBOOK) {
+        LootCategory staff = LootCategories.STAFF.value();
+        LootCategory spellbook = LootCategories.SPELLBOOK.value();
+
+        // 注意：Apoth.LootCategories.MELEE_WEAPON 通常是静态常量对象，直接引用即可
+        // 逻辑：如果分类 不是法杖 且 不是近战 且 不是法术书，则返回 false
+        if (cat != staff && cat != Apoth.LootCategories.MELEE_WEAPON && cat != spellbook) {
             return false;
         }
 

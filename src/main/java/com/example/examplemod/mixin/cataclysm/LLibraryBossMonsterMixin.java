@@ -1,6 +1,7 @@
 package com.example.examplemod.mixin.cataclysm;
 
 import com.github.L_Ender.cataclysm.entity.AnimationMonster.BossMonsters.LLibrary_Boss_Monster;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -23,7 +24,7 @@ public class LLibraryBossMonsterMixin {
     )
     private float modifyDamageCapLogic(float cap, float damage) {
 
-        return min(cap+getL2HostilityLevel(((LLibrary_Boss_Monster)(Object)this)).orElse(1), damage);
+        return min(cap+getL2HostilityLevel(((LivingEntity)(Object)this)).orElse(1), damage);
     }
     private static float min(float a, float b) {
         if (a != a)

@@ -96,7 +96,7 @@ public class GoldenGateEntity extends Entity {
         Vec3 targetPos = getTargetPos();
         Vec3 direction = targetPos.subtract(this.position()).normalize();
 
-        sword.shoot(direction.x, direction.y, direction.z, 2.4F, 0.1F);
+        sword.shoot(direction.x, direction.y, direction.z, 1.4F, 0.1F);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 1.0F, 1.0F);
         this.level().addFreshEntity(sword);
 

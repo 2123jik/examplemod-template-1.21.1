@@ -1,6 +1,5 @@
 package com.example.examplemod.server.effect;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -10,15 +9,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
-import static com.example.examplemod.ExampleMod.MODID;
-import static com.example.examplemod.ExampleMod.modResourceLoc;
+import static com.example.examplemod.ExampleMod.modrl;
 
 public class FearEffect extends MobEffect {
     public FearEffect(MobEffectCategory category, int color) {
         super(category, color);
         this.addAttributeModifier(
                 Attributes.MOVEMENT_SPEED,
-                modResourceLoc( "fear_speed_modifier"),
+                modrl( "fear_speed_modifier"),
                 -0.25,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE
         );

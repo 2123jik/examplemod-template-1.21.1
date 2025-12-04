@@ -1,7 +1,5 @@
 {
   "replace": false,
   "values": [
-    "#skilltree:melee_weapon",
-    "#c:tools/melee_weapon"
   ]
 }

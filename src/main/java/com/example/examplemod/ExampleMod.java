@@ -5,15 +5,19 @@ import com.example.examplemod.category.LootCategories;
 import com.example.examplemod.category.SlotGroups;
 import com.example.examplemod.client.gui.InventoryModelRenderer;
 
+import com.example.examplemod.client.particle.ModParticles;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.init.ModEffects;
 import com.example.examplemod.network.ServerboundOpenBlockInHandMessage;
 import com.example.examplemod.recipe.ModRecipes;
 import com.example.examplemod.register.ModEntities;
+import com.example.examplemod.register.ModTraits;
 import com.example.examplemod.spells.SpellRegistries;
+import dev.shadowsoffire.apotheosis.Apoth;
 import dev.shadowsoffire.apotheosis.affix.AffixRegistry;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
 import fuzs.puzzleslib.api.network.v3.NetworkHandler;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
@@ -27,6 +31,8 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+
+import static dev.shadowsoffire.apotheosis.Apoth.BuiltInRegs.LOOT_CATEGORY;
 
 // 定义 Mod 的主入口类，MODID 需要与 mods.toml 文件中的 ID 一致
 @Mod(ExampleMod.MODID)
@@ -52,7 +58,9 @@ public class ExampleMod {
         // 1. 注册生命周期事件监听器
         // 注册通用设置阶段（CommonSetup）的监听器
         modEventBus.addListener(this::commonSetup);
-
+//        ModTraits.register();
+//        ModTraits.REGISTRATE.registerEventListeners(modEventBus);
+        ModParticles.PARTICLES.register(modEventBus);
         // 2. 注册延迟注册表 (DeferredRegister)
         // 注册实体
         ModEntities.register(modEventBus);
@@ -99,19 +107,27 @@ public class ExampleMod {
      * 在这里主要用于向 Apotheosis (神化 Mod) 注册自定义词缀 (Affix)。
      */
     private void commonSetup(FMLCommonSetupEvent event) {
+
         // 注册自定义词缀的编解码器 (Codec) 到 Apotheosis 的注册表中
         // 属性词缀
-        AffixRegistry.INSTANCE.registerCodec(modResourceLoc("attribute"), SchoolAttributeAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(modrl("attribute"), SchoolAttributeAffix.CODEC);
         // 法术效果词缀
-        AffixRegistry.INSTANCE.registerCodec(modResourceLoc("spell_effect"), SpellEffectAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(modrl("spell_effect"), SpellEffectAffix.CODEC);
         // 心灵感应/魔法感应词缀
-        AffixRegistry.INSTANCE.registerCodec(modResourceLoc("magic_telepathic"), MagicTelepathicAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(modrl("magic_telepathic"), MagicTelepathicAffix.CODEC);
         // 法术等级词缀
-        AffixRegistry.INSTANCE.registerCodec(modResourceLoc("spell_level"), SpellLevelAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(modrl("spell_level"), SpellLevelAffix.CODEC);
         // 法术触发词缀
-        AffixRegistry.INSTANCE.registerCodec(modResourceLoc("spell_trigger"), SpellTriggerAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(modrl("spell_trigger"), SpellTriggerAffix.CODEC);
         // 法力消耗词缀
-        AffixRegistry.INSTANCE.registerCodec(modResourceLoc("mana_cost"), ManaCostAffix.CODEC);
+        AffixRegistry.INSTANCE.registerCodec(modrl("mana_cost"), ManaCostAffix.CODEC);
+        System.out.println("=== 属性导出开始 ===");
+        System.out.println("ID, 描述/翻译键");
+       LOOT_CATEGORY.entrySet().forEach(entry -> {
+            String id = entry.getKey().location().toString();
+            System.out.println(id);
+        });
+        System.out.println("=== 属性导出结束 ===");
 
     }
 
@@ -129,7 +145,7 @@ public class ExampleMod {
      * @param id 资源路径 ID
      * @return ResourceLocation 对象 (examplemod:id)
      */
-    public static ResourceLocation modResourceLoc(String id) {
+    public static ResourceLocation modrl(String id) {
         return ResourceLocation.fromNamespaceAndPath(MODID, id);
     }
 

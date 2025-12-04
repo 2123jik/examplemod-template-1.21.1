@@ -9,10 +9,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -58,26 +55,43 @@ public class SwordProjectileEntity extends AbstractArrow {
      * 核心逻辑：扫描整个注册表
      */
     private static void initializeCacheIfNeeded() {
-        // 如果缓存里有东西，说明已经扫描过了，直接返回
         if (!GLOBAL_SWORD_CACHE.isEmpty()) return;
 
-        System.out.println("Gate of Babylon: Scanning for swords..."); // 打印日志方便调试
+        System.out.println("Gate of Babylon: Scanning for HIGH DAMAGE weapons...");
 
-        // 遍历游戏里注册的所有物品
         for (Item item : BuiltInRegistries.ITEM) {
-            // 判定条件：是否是剑？
-            // 你也可以加上 item instanceof TridentItem (三叉戟) 或 item instanceof AxeItem (斧头)
-            if (item instanceof SwordItem) {
+            if (item == Items.AIR) continue;
+
+            // --- 筛选逻辑开始 ---
+            boolean validWeapon = false;
+
+            // 1. 类型白名单 (剑、三叉戟必然入选)
+            if (item instanceof SwordItem || item instanceof TridentItem) {
+                validWeapon = true;
+            }
+            // 2. 斧头 (必然入选)
+            else if (item instanceof AxeItem) {
+                validWeapon = true;
+            }
+            // 3. 模组武器漏网之鱼检测 (简单的名字检测，或者是 TieredItem)
+            else if (item instanceof net.minecraft.world.item.TieredItem) {
+                // 这里可以做得更细，比如排除掉 PickaxeItem 和 ShovelItem
+                // 除非你想让“王”扔出钻石铲子... 其实也不是不行，这很羞辱人
+                validWeapon = true;
+            }
+
+            // --- 筛选逻辑结束 ---
+
+            if (validWeapon) {
                 GLOBAL_SWORD_CACHE.add(new ItemStack(item));
             }
         }
 
-        // 兜底：万一真的一把剑都没扫到（基本不可能），加个铁剑防止崩溃
         if (GLOBAL_SWORD_CACHE.isEmpty()) {
             GLOBAL_SWORD_CACHE.add(new ItemStack(Items.IRON_SWORD));
         }
 
-        System.out.println("Gate of Babylon: Found " + GLOBAL_SWORD_CACHE.size() + " weapons.");
+        System.out.println("Gate of Babylon: Loaded " + GLOBAL_SWORD_CACHE.size() + " items.");
     }
 
     private ItemStack getRandomSword() {

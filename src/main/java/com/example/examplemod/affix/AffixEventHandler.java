@@ -90,18 +90,44 @@ public class AffixEventHandler {
 
     /**
      * 处理法术造成伤害时的词缀触发
-     * 例如：法术击中敌人时施加中毒，或者触发另一个法术
+     * 修复版：支持傀儡等从属生物触发
      */
     @SubscribeEvent
     public void hookSpellDamageAffix(SpellDamageEvent event) {
         if (event.getEntity().level().isClientSide()) return; // 仅在服务端运行
 
-        // 获取施法者
-        LivingEntity caster = event.getSpellDamageSource().getEntity() instanceof LivingEntity living ? living : null;
+        // --- 核心修复开始 ---
+        LivingEntity caster = null;
+        DamageSource source = event.getSpellDamageSource();
+        Entity directEntity = source.getDirectEntity(); // 直接造成伤害的实体（如火球、魔法飞弹）
+        Entity ownerEntity = source.getEntity();       // 伤害归属者（通常被系统判定为玩家）
+
+        // 策略1：如果是弹射物/法术实体，尝试直接获取发射者 (Shooter)
+        // 在 Minecraft 底层，Projectile.getOwner() 通常指向发射它的物理实体（傀儡），
+        // 而不是被伤害系统重定向后的逻辑主人（玩家）。
+        if (directEntity instanceof Projectile projectile) {
+            Entity shooter = projectile.getOwner();
+            if (shooter instanceof LivingEntity livingShooter) {
+                caster = livingShooter;
+            }
+        }
+
+        // 策略2：如果策略1失败（不是弹射物，或者是瞬发法术），回退使用归属者
+        if (caster == null && ownerEntity instanceof LivingEntity livingOwner) {
+            caster = livingOwner;
+        }
+
+        // 如果还是找不到施法者，直接返回
         if (caster == null) return;
+        // --- 核心修复结束 ---
+
+        // 调试建议：如果你想验证，可以取消下面这行的注释。
+        // 成功时，你应该看到 "施法者: MetalGolemEntity"，而不是 "施法者: Player"
+        // System.out.println("DEBUG: 法术伤害触发 - 施法者: " + caster.getName().getString() + " | 手持: " + caster.getMainHandItem());
 
         // 遍历施法者所有装备槽位
         for (ItemStack stack : caster.getAllSlots()) {
+            LivingEntity finalCaster = caster;
             AffixHelper.streamAffixes(stack).forEach(inst -> {
                 // 处理 SpellEffectAffix (施加药水效果等)
                 if (inst.getAffix() instanceof SpellEffectAffix affix) {
@@ -110,17 +136,17 @@ public class AffixEventHandler {
                         affix.applyEffectInternal(event.getEntity(), inst);
                     } else if (affix.target == SpellEffectAffix.SpellTarget.SPELL_DAMAGE_SELF) {
                         // 目标是施法者自己
-                        affix.applyEffectInternal(caster, inst);
+                        affix.applyEffectInternal(finalCaster, inst);
                     }
                 }
                 // 处理 SpellTriggerAffix (触发连锁法术)
                 else if (inst.getAffix() instanceof SpellTriggerAffix affix && affix.trigger == SpellTriggerAffix.TriggerType.SPELL_DAMAGE) {
                     LivingEntity target = affix.target.map(targetType -> switch (targetType) {
-                        case SELF -> caster;
+                        case SELF -> finalCaster; // 这里现在会正确指向傀儡
                         case TARGET -> event.getEntity();
                     }).orElse(event.getEntity());
 
-                    affix.triggerSpell(caster, target, inst);
+                    affix.triggerSpell(finalCaster, target, inst);
                 }
             });
         }

@@ -1,5 +1,6 @@
 package com.example.examplemod.init;
 
+import com.example.examplemod.server.effect.CombustionCurseEffect;
 import com.example.examplemod.server.effect.FearEffect;
 import com.example.examplemod.server.effect.MakenPowerEffect;
 import net.minecraft.core.Holder;
@@ -23,6 +24,9 @@ public class ModEffects {
     // 1. Registries.MOB_EFFECT: 指定我们要注册的内容类型是“药水效果”。
     // 2. MODID: 指定这些效果归属于哪个模组（命名空间）。
     public static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, MODID);
+
+    public static final Holder<MobEffect> COMBUSTION_CURSE = MOB_EFFECTS.register("combustion_curse",
+            () -> new CombustionCurseEffect(MobEffectCategory.HARMFUL, 0xFF4500));
 
     // 注册一个名为 "fear" (恐惧) 的效果。
     // Holder<MobEffect>: 返回一个持有者对象，用于在后续代码中（如给实体添加效果时）引用这个效果。
