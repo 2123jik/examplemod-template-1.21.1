@@ -7,13 +7,18 @@ import com.example.examplemod.client.entity.SwordProjectileRenderer;
 
 import com.example.examplemod.client.particle.BlackHoleParticle;
 import com.example.examplemod.client.particle.ModParticles;
+import com.example.examplemod.client.screen.AttributeEditorScreen;
+import com.example.examplemod.client.screen.TradeScreen;
 import com.example.examplemod.component.ModDataComponents;
-import com.example.examplemod.init.ModEffects;
+import com.example.examplemod.register.ModEffects;
 import com.example.examplemod.register.ModEntities;
+import com.example.examplemod.register.ModMenus;
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import dev.shadowsoffire.apotheosis.Apoth;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -29,6 +34,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
@@ -48,15 +54,58 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
-import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
+import static com.example.examplemod.register.ModEffects.MAKEN_POWER;
 import static com.example.examplemod.register.ModEntities.GOLDENGATEENTITY;
 import static net.minecraft.client.renderer.LightTexture.FULL_BRIGHT;
 
 @EventBusSubscriber(modid = ExampleMod.MODID,value = Dist.CLIENT)
 public class ClientSetup {
+    @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        // 核心代码：告诉游戏，当遇到 TRADE_MENU 类型时，使用 TradeScreen 来渲染
+        // ModMenus.TRADE_MENU.get() 是你注册的 MenuType
+        // TradeScreen::new 是构造函数的引用
+        event.register(ModMenus.TRADE_MENU.get(), TradeScreen::new);
+    }
+    // 定义按键 (例如 'K' 键)
+    public static final KeyMapping OPEN_EDITOR_KEY = new KeyMapping(
+            "key.examplemod.open_editor",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_K,
+            "key.categories.examplemod"
+    );
+    @SubscribeEvent
+    public static void registerKeys(RegisterKeyMappingsEvent event) {
+        event.register(OPEN_EDITOR_KEY);
+    }
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent.Key event) {
+        if (OPEN_EDITOR_KEY.consumeClick()) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+
+            ItemStack stack = mc.player.getMainHandItem();
+
+            // 仅限创造模式才能打开 (可选)
+            if (!mc.player.isCreative()) {
+                mc.player.displayClientMessage(Component.literal("需要创造模式！"), true);
+                return;
+            }
+
+            if (!stack.isEmpty()) {
+                // 直接在客户端打开 Screen
+                // 因为这只是个 UI，不需要服务端的 Menu/Container 参与
+                // 数据同步靠 UI 里的 Packet 发送
+                mc.setScreen(new AttributeEditorScreen(stack));
+            } else {
+                mc.player.displayClientMessage(Component.literal("请手持物品！"), true);
+            }
+        }
+    }
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         // 注册你的传送门实体渲染器

@@ -1,0 +1,6 @@
+{
+  "type": "examplemod:replace_item_with_tag",
+  "conditions": [],
+  "target": "minecraft:netherite_sword",
+  "tag": "l2weaponry:material/netherite"
+}

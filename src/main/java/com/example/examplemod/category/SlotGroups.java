@@ -1,6 +1,5 @@
 package com.example.examplemod.category;
 
-import com.example.examplemod.ExampleMod;
 import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.apothic_attributes.compat.CurioEquipmentSlot;
 import dev.shadowsoffire.apothic_attributes.modifiers.EntityEquipmentSlot;
@@ -8,11 +7,14 @@ import dev.shadowsoffire.apothic_attributes.modifiers.EntitySlotGroup;
 import dev.shadowsoffire.placebo.registry.DeferredHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
+
+import static com.example.examplemod.ExampleMod.MODID;
 
 public class SlotGroups {
 
-    public static final DeferredHelper R = DeferredHelper.create(ExampleMod.MODID);
+    public static final DeferredHelper R = DeferredHelper.create(MODID);
 
     public static void register(IEventBus bus) {
         bus.register(R);
@@ -89,9 +91,11 @@ public class SlotGroups {
                 HolderSet.direct(Slots.TRINKET));
 
         private static EntitySlotGroup group(String path, HolderSet<EntityEquipmentSlot> slots) {
-            return R.custom(path, ALObjects.BuiltInRegs.ENTITY_SLOT_GROUP.key(), new EntitySlotGroup(ExampleMod.modrl(path), slots));
+            return R.custom(path, ALObjects.BuiltInRegs.ENTITY_SLOT_GROUP.key(), new EntitySlotGroup(loc(path), slots));
         }
-
+        public static ResourceLocation loc(String id) {
+            return ResourceLocation.fromNamespaceAndPath(MODID, id);
+        }
         public static void init() {}
     }
 }

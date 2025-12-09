@@ -16,29 +16,74 @@
             "texture": "apotheosis:textures/rarity/shadow_t1.png"
         }
     },
-    "rules": [
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "stat"
-        },
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "stat"
-        },
-        {
-            "type": "apotheosis:chanced",
-            "chance": 0.5,
-            "rule": {
-                "type": "apotheosis:affix",
-                "affix_type": "basic_effect"
-            }
-        },
-        {
-            "type": "apotheosis:socket",
-            "min": 0,
-            "max": 1
+  "rules": [
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "stat"
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "stat"
+    },
+    {
+      "type": "apotheosis:chanced",
+      "chance": 0.25,
+      "rule": {
+        "type": "apotheosis:affix",
+        "affix_type": "stat"
+      }
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "basic_effect"
+    },
+    {
+      "type": "apotheosis:chanced",
+      "chance": 0.25,
+      "rule": {
+        "type": "apotheosis:affix",
+        "affix_type": "basic_effect"
+      }
+    },
+    {
+      "type": "apotheosis:chanced",
+      "chance": 0.75,
+      "rule": {
+        "type": "apotheosis:affix",
+        "affix_type": "ability"
+      }
+    },
+    {
+      "type": "apotheosis:select",
+      "chance": 0.95,
+      "if_false": {
+        "type": "apotheosis:socket",
+        "min": 3,
+        "max": 4
+      },
+      "if_true": {
+        "type": "apotheosis:socket",
+        "min": 1,
+        "max": 2
+      }
+    },
+    {
+      "type": "apotheosis:select",
+      "chance": 0.99,
+      "if_false": {
+        "type": "apotheosis:component",
+        "components": {
+          "!apotheosis:durability_bonus": {},
+          "minecraft:unbreakable": {}
         }
-    ],
+      },
+      "if_true": {
+        "type": "apotheosis:durability",
+        "min": 0.35,
+        "max": 0.55
+      }
+    }
+  ],
     "sort_index": 400,
     "weights": {
         "haven": {

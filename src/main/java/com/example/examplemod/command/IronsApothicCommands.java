@@ -1,10 +1,13 @@
 package com.example.examplemod.command;
 
+import com.example.examplemod.server.menu.TradeManager;
 import com.example.examplemod.util.SpellDiscoveryUtil;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -28,5 +31,19 @@ public class IronsApothicCommands {
                                         })
                                 )
                         ));
+    }
+    @SubscribeEvent
+    public static void onRegisterCommands(RegisterCommandsEvent event) {
+        event.getDispatcher().register(
+                Commands.literal("trade_accept_internal")
+                        .then(Commands.argument("uuid", StringArgumentType.string())
+                                .executes(context -> {
+                                    String uuidStr = StringArgumentType.getString(context, "uuid");
+                                    ServerPlayer player = context.getSource().getPlayerOrException();
+                                    TradeManager.acceptTrade(player, uuidStr);
+                                    return 1;
+                                })
+                        )
+        );
     }
 } 

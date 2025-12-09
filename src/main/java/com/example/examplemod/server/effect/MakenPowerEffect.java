@@ -1,6 +1,6 @@
 package com.example.examplemod.server.effect;
 
-import com.example.examplemod.init.ModEffects;
+import com.example.examplemod.register.ModEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -14,7 +14,7 @@ import net.minecraft.world.phys.AABB;
 import java.util.List;
 
 import static com.example.examplemod.ExampleMod.MODID;
-import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
+import static com.example.examplemod.register.ModEffects.MAKEN_POWER;
 import static dev.shadowsoffire.apothic_attributes.api.ALObjects.Attributes.LIFE_STEAL;
 import static net.minecraft.world.entity.ai.attributes.Attributes.*;
 

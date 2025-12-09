@@ -1,6 +1,10 @@
 package com.example.examplemod.client.gui;
 
+import com.google.gson.JsonElement;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
+import dev.shadowsoffire.apotheosis.affix.effect.MobEffectAffix;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -16,29 +20,31 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
 
-@EventBusSubscriber(value = Dist.CLIENT)
+import static com.example.examplemod.ExampleMod.LOGGER;
+
+//@EventBusSubscriber(value = Dist.CLIENT)
 public class InventoryModelRenderer {
 
-    // 按键绑定
-    public static final KeyMapping OPEN_EDITOR_KEY = new KeyMapping(
-            "key.examplemod.open_editor",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_K, // 默认 K 键打开
-            "key.categories.examplemod"
-    );
-
-    @SubscribeEvent
-    public static void registerBindings(RegisterKeyMappingsEvent event) {
-        event.register(OPEN_EDITOR_KEY);
-    }
-
-    @SubscribeEvent
-    public static void onKeyInput(InputEvent.Key event) {
-        if (OPEN_EDITOR_KEY.consumeClick()) {
-//            Minecraft.getInstance().setScreen(new ProModelEditorScreen());
-        }
-    }
+//    // 按键绑定
+//    public static final KeyMapping OPEN_EDITOR_KEY = new KeyMapping(
+//            "key.examplemod.open_editor",
+//            KeyConflictContext.IN_GAME,
+//            InputConstants.Type.KEYSYM,
+//            GLFW.GLFW_KEY_K, // 默认 K 键打开
+//            "key.categories.examplemod"
+//    );
+//
+//    @SubscribeEvent
+//    public static void registerBindings(RegisterKeyMappingsEvent event) {
+//        event.register(OPEN_EDITOR_KEY);
+//    }
+//
+//    @SubscribeEvent
+//    public static void onKeyInput(InputEvent.Key event) {
+//        if (OPEN_EDITOR_KEY.consumeClick()) {
+////            Minecraft.getInstance().setScreen();
+//        }
+//    }
 
     // ==========================================
     // 配置类 (保持不变，方便存储)

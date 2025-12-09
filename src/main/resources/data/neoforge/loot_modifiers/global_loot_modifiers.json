@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "entries": [
+    "examplemod:replace_bread",
+    "examplemod:randomize_arrows",
+    "examplemod:l2weaponry/diamond",
+    "examplemod:l2weaponry/golden",
+    "examplemod:l2weaponry/iron",
+    "examplemod:l2weaponry/netherite"
+  ]
+}

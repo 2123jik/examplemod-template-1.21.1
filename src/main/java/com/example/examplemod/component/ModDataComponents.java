@@ -85,6 +85,12 @@ public class ModDataComponents {
         return DATA_COMPONENT_TYPES.register(name, () -> builderOperator.apply(DataComponentType.builder()).build());
     }
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> TIER =
+            register("tier", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.INT)
+            );
+
     /**
      * 初始化方法。
      * 在模组主类的构造函数中调用此方法，将 DeferredRegister 挂载到模组事件总线上。

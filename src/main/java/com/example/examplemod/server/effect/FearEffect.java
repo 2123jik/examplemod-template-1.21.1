@@ -9,14 +9,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
-import static com.example.examplemod.ExampleMod.modrl;
+import static com.example.examplemod.ExampleMod.loc;
 
 public class FearEffect extends MobEffect {
     public FearEffect(MobEffectCategory category, int color) {
         super(category, color);
         this.addAttributeModifier(
                 Attributes.MOVEMENT_SPEED,
-                modrl( "fear_speed_modifier"),
+                loc( "fear_speed_modifier"),
                 -0.25,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE
         );

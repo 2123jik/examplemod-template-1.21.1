@@ -60,7 +60,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.armortrim.ArmorTrim;
 import net.minecraft.world.item.armortrim.TrimMaterial;
@@ -77,14 +76,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.living.*;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -96,16 +93,15 @@ import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.bobmowzie.mowziesmobs.server.item.ItemHandler.WROUGHT_AXE;
 import static com.bobmowzie.mowziesmobs.server.item.ItemHandler.WROUGHT_HELMET;
 import static com.example.examplemod.ExampleMod.MODID;
-import static com.example.examplemod.ExampleMod.modrl;
+import static com.example.examplemod.ExampleMod.loc;
 import static com.example.examplemod.component.ModDataComponents.*;
-import static com.example.examplemod.init.ModEffects.MAKEN_POWER;
+import static com.example.examplemod.register.ModEffects.MAKEN_POWER;
 import static dev.shadowsoffire.apothic_attributes.api.ALObjects.DamageTypes.*;
 import static fuzs.enderzoology.init.ModRegistry.SOULBOUND_ENCHANTMENT;
 
@@ -130,14 +126,14 @@ public class ServerEventHandler {
     // =================================================================
 
     private static final String SPELL_CAST_COUNT_TAG = "Examplemod_SpellCounts";
-    private static final ResourceLocation ATTACK_DAMAGE_GROWTH_ID = modrl( "weapon_growth_bonus");
+    private static final ResourceLocation ATTACK_DAMAGE_GROWTH_ID = loc( "weapon_growth_bonus");
 
     // Maken 装备各部位生命值成长 AttributeModifier 的 ID
     private static final Map<EquipmentSlot, ResourceLocation> HEALTH_GROWTH_IDS = ImmutableMap.of(
-            EquipmentSlot.HEAD, modrl( "max_health_head"),
-            EquipmentSlot.CHEST, modrl( "max_health_chest"),
-            EquipmentSlot.LEGS, modrl( "max_health_legs"),
-            EquipmentSlot.FEET, modrl( "max_health_feet")
+            EquipmentSlot.HEAD, loc( "max_health_head"),
+            EquipmentSlot.CHEST, loc( "max_health_chest"),
+            EquipmentSlot.LEGS, loc( "max_health_legs"),
+            EquipmentSlot.FEET, loc( "max_health_feet")
     );
 
     // 特殊的盔甲纹饰材料列表（红石、钻石等）
@@ -146,7 +142,7 @@ public class ServerEventHandler {
             withDefaultNamespace("lapis"), withDefaultNamespace("netherite"),
             withDefaultNamespace("iron"), withDefaultNamespace("emerald"),
             withDefaultNamespace("diamond"), withDefaultNamespace("copper"),
-           withDefaultNamespace("amethyst")
+            withDefaultNamespace("amethyst")
     );
 
     // =================================================================
@@ -446,10 +442,6 @@ public class ServerEventHandler {
     @EventBusSubscriber(modid = MODID)
     public static class CombatEvents {
 
-        /**
-         * 伤害预处理：
-         * 1. 转换原版伤害类型为 Apothic Attributes 魔法伤害类型
-         */
         @SubscribeEvent
         public static void onPreDamage(LivingDamageEvent.Pre event) {
             if (event.getEntity().level().isClientSide()) return;
@@ -1048,90 +1040,82 @@ public class ServerEventHandler {
             }
         }
     }
-    @EventBusSubscriber
-    public static class KineticDamageHandler
-    {
-        private static final double MIN_VELOCITY_THRESHOLD = 0.08;
-        private static final double REFERENCE_KINETIC_ENERGY = 0.0138;
-        private static final double CONVERSION_FACTOR = 0.6;
-
-        private static final Map<Integer, Vec3> VELOCITY_CACHE = new ConcurrentHashMap<>();
-
-        @SubscribeEvent
-        public static void onEntityTick(EntityTickEvent.Post event) {
-            Entity entity = event.getEntity();
-            // 优化：只记录生物和投掷物/箭矢，忽略掉落物、画框等无关实体
-            if (entity instanceof LivingEntity || entity instanceof Projectile) {
-                VELOCITY_CACHE.put(entity.getId(), entity.getDeltaMovement());
-            }
-        }
-
-        @SubscribeEvent
-        public static void onEntityLeave(EntityLeaveLevelEvent event) {
-            VELOCITY_CACHE.remove(event.getEntity().getId());
-        }
-
-        @SubscribeEvent
-        public static void onLivingDamage(LivingDamageEvent.Pre event) {
-            Entity directAttacker = event.getSource().getDirectEntity();
-            LivingEntity victim = event.getEntity();
-
-            if (directAttacker == null || directAttacker == victim) return;
-
-            Vec3 vAttacker = calculateRealVelocityVector(directAttacker);
-            Vec3 vVictim = calculateRealVelocityVector(victim);
-
-            Vec3 vRelative = vAttacker.subtract(vVictim);
-            double impactSpeed = vRelative.length();
-
-            if (impactSpeed < MIN_VELOCITY_THRESHOLD) return;
-
-            double mAttacker = calculateMass(directAttacker);
-            double mVictim = calculateMass(victim);
-
-            double reducedMass = (mAttacker * mVictim) / (mAttacker + mVictim);
-
-            double rawEnergy = 0.5 * reducedMass * Math.pow(impactSpeed, 2);
-
-            double kbResistance = 0.0;
-            if (victim.getAttributes().hasAttribute(Attributes.KNOCKBACK_RESISTANCE)) {
-                kbResistance = victim.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
-            }
-
-            double resistanceFactor = 1.0 / (1.0 + (kbResistance * 3.0));
-            double effectiveEnergy = rawEnergy * resistanceFactor;
-
-            double bonusMultiplier = (effectiveEnergy / REFERENCE_KINETIC_ENERGY) * CONVERSION_FACTOR;
-            float finalMultiplier = 1.0f + (float) bonusMultiplier;
-
-            float originalDamage = event.getNewDamage();
-            float newDamage = originalDamage * finalMultiplier;
-
-            event.setNewDamage(newDamage);
-        }
-
-        private static Vec3 calculateRealVelocityVector(Entity entity) {
-            if (entity == null) return Vec3.ZERO;
-            Entity mover = entity.getVehicle() != null ? entity.getVehicle() : entity;
-
-            Vec3 vCache = VELOCITY_CACHE.getOrDefault(mover.getId(), Vec3.ZERO);
-            Vec3 vCurrent = mover.getDeltaMovement();
-            Vec3 vPosDiff = new Vec3(mover.getX() - mover.xOld, mover.getY() - mover.yOld, mover.getZ() - mover.zOld);
-            Vec3 bestV = vCurrent;
-            if (vCache.lengthSqr() > bestV.lengthSqr()) bestV = vCache;
-            if (vPosDiff.lengthSqr() > bestV.lengthSqr()) bestV = vPosDiff;
-
-            return bestV;
-        }
-
-        private static double calculateMass(Entity entity) {
-            double width = entity.getBbWidth();
-            double height = entity.getBbHeight();
-            double volume = width * width * height;
-
-            return Math.max(0.01, volume);
-        }
-    }
+    //    @EventBusSubscriber
+//    public static class KineticDamageHandler
+//    {
+//        private static final double MIN_VELOCITY_THRESHOLD = 0.08;
+//        private static final double REFERENCE_KINETIC_ENERGY = 0.0138;
+//        private static final double CONVERSION_FACTOR = 0.6;
+//
+//        private static final Map<Integer, Vec3> VELOCITY_CACHE = new ConcurrentHashMap<>();
+//
+//
+//        @SubscribeEvent
+//        public static void onEntityLeave(EntityLeaveLevelEvent event) {
+//            VELOCITY_CACHE.remove(event.getEntity().getId());
+//        }
+//
+//        @SubscribeEvent
+//        public static void onLivingDamage(LivingDamageEvent.Pre event) {
+//            Entity directAttacker = event.getSource().getDirectEntity();
+//            LivingEntity victim = event.getEntity();
+//
+//            if (directAttacker == null || directAttacker == victim) return;
+//
+//            Vec3 vAttacker = calculateRealVelocityVector(directAttacker);
+//            Vec3 vVictim = calculateRealVelocityVector(victim);
+//
+//            Vec3 vRelative = vAttacker.subtract(vVictim);
+//            double impactSpeed = vRelative.length();
+//
+//            if (impactSpeed < MIN_VELOCITY_THRESHOLD) return;
+//
+//            double mAttacker = calculateMass(directAttacker);
+//            double mVictim = calculateMass(victim);
+//
+//            double reducedMass = (mAttacker * mVictim) / (mAttacker + mVictim);
+//
+//            double rawEnergy = 0.5 * reducedMass * Math.pow(impactSpeed, 2);
+//
+//            double kbResistance = 0.0;
+//            if (victim.getAttributes().hasAttribute(Attributes.KNOCKBACK_RESISTANCE)) {
+//                kbResistance = victim.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+//            }
+//
+//            double resistanceFactor = 1.0 / (1.0 + (kbResistance * 3.0));
+//            double effectiveEnergy = rawEnergy * resistanceFactor;
+//
+//            double bonusMultiplier = (effectiveEnergy / REFERENCE_KINETIC_ENERGY) * CONVERSION_FACTOR;
+//            float finalMultiplier = 1.0f + (float) bonusMultiplier;
+//
+//            float originalDamage = event.getNewDamage();
+//            float newDamage = originalDamage * finalMultiplier;
+//
+//            event.setNewDamage(newDamage);
+//        }
+//
+//        private static Vec3 calculateRealVelocityVector(Entity entity) {
+//            if (entity == null) return Vec3.ZERO;
+//            Entity mover = entity.getVehicle() != null ? entity.getVehicle() : entity;
+//
+//            Vec3 vCache = VELOCITY_CACHE.getOrDefault(mover.getId(), Vec3.ZERO);
+//            Vec3 vCurrent = mover.getDeltaMovement();
+//            Vec3 vPosDiff = new Vec3(mover.getX() - mover.xOld, mover.getY() - mover.yOld, mover.getZ() - mover.zOld);
+//            Vec3 bestV = vCurrent;
+//            if (vCache.lengthSqr() > bestV.lengthSqr()) bestV = vCache;
+//            if (vPosDiff.lengthSqr() > bestV.lengthSqr()) bestV = vPosDiff;
+//
+//            return bestV;
+//        }
+//
+//        private static double calculateMass(Entity entity) {
+//            double width = entity.getBbWidth();
+//            double height = entity.getBbHeight();
+//            double volume = width * width * height;
+//
+//            return Math.max(0.01, volume);
+//        }
+//    }
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Pre event) {
         Entity entity = event.getEntity();
@@ -1157,4 +1141,17 @@ public class ServerEventHandler {
             }
         }
     }
+
+
+//    @SubscribeEvent
+//    public void onInteract(PlayerInteractEvent.EntityInteract event) {
+//        if (event.getLevel().isClientSide) return;
+//        System.out.println("触发了交互事件！发起者: " + event.getEntity().getName().getString());
+//        if (event.getTarget() instanceof ServerPlayer targetPlayer && event.getEntity() instanceof ServerPlayer sourcePlayer) {
+//                TradeManager.requestTrade(sourcePlayer, targetPlayer);
+//                event.setCanceled(true);
+//                event.setCancellationResult(InteractionResult.SUCCESS);
+//
+//        }
+//    }
 }

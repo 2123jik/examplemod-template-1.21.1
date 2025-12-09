@@ -17,40 +17,40 @@ import java.util.List;
 @Mixin(Netherite_Monstrosity_Entity.class)
 public class NetheriteMonstrosityMixin {
 
-    /**
-     * 修改目标：aiStep 方法
-     * 目的：在咆哮时给玩家施加效果
-     */
-    @Inject(method = "aiStep", at = @At("HEAD"))
-    private void onAiStep(CallbackInfo ci) {
-        Netherite_Monstrosity_Entity boss = (Netherite_Monstrosity_Entity) (Object) this;
-        
-        // 只有在服务器端运行
-        if (boss.level().isClientSide) return;
-
-        int state = boss.getAttackState();
-        int tick = boss.attackTicks;
-
-        // 定义什么时候算“咆哮”。根据源码：
-        // State 4 (二阶段转场): tick 16, 18, 20 有咆哮粒子
-        // State 9 (Overpower/压制): tick 32, 34, 36 有咆哮粒子
-        boolean isRoaring = (state == 2 && (tick == 2 ));
-
-        if (isRoaring) {
-            double range = 20.0; // 咆哮影响范围
-            AABB area = boss.getBoundingBox().inflate(range);
-            List<LivingEntity> targets = boss.level().getEntitiesOfClass(LivingEntity.class, area);
-
-            for (LivingEntity target : targets) {
-                // 排除 Boss 自己和队友
-                if (target != boss && !boss.isAlliedTo(target)) {
-                    // 或者你要加原版的虚弱/缓慢等
-                     target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
-                    EffectUtils.applyCombustionCurse(target, boss, 200, 3);
-                }
-            }
-        }
-    }
+//    /**
+//     * 修改目标：aiStep 方法
+//     * 目的：在咆哮时给玩家施加效果
+//     */
+//    @Inject(method = "aiStep", at = @At("HEAD"))
+//    private void onAiStep(CallbackInfo ci) {
+//        Netherite_Monstrosity_Entity boss = (Netherite_Monstrosity_Entity) (Object) this;
+//
+//        // 只有在服务器端运行
+//        if (boss.level().isClientSide) return;
+//
+//        int state = boss.getAttackState();
+//        int tick = boss.attackTicks;
+//
+//        // 定义什么时候算“咆哮”。根据源码：
+//        // State 4 (二阶段转场): tick 16, 18, 20 有咆哮粒子
+//        // State 9 (Overpower/压制): tick 32, 34, 36 有咆哮粒子
+//        boolean isRoaring = (state == 2 && (tick == 2 ));
+//
+//        if (isRoaring) {
+//            double range = 20.0; // 咆哮影响范围
+//            AABB area = boss.getBoundingBox().inflate(range);
+//            List<LivingEntity> targets = boss.level().getEntitiesOfClass(LivingEntity.class, area);
+//
+//            for (LivingEntity target : targets) {
+//                // 排除 Boss 自己和队友
+//                if (target != boss && !boss.isAlliedTo(target)) {
+//                    // 或者你要加原版的虚弱/缓慢等
+//                     target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
+//                    EffectUtils.applyCombustionCurse(target, boss, 200, 3);
+//                }
+//            }
+//        }
+//    }
 
     /**
      * 修改目标：aiStep 方法中的 heal 调用

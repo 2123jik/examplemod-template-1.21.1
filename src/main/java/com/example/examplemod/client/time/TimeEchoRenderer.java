@@ -1,6 +1,6 @@
 package com.example.examplemod.client.time;
 
-import com.example.examplemod.init.ModEffects;
+import com.example.examplemod.register.ModEffects;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;

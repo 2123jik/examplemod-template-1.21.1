@@ -20,53 +20,57 @@
         }
     },
     "rules": [
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "stat"
-        },
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "stat"
-        },
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "stat"
-        },
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "stat"
-        },
-      {
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "stat"
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "stat"
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "stat"
+    },
+    {
+      "type": "apotheosis:chanced",
+      "chance": 0.25,
+      "rule": {
         "type": "apotheosis:affix",
         "affix_type": "stat"
-      },
+      }
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "basic_effect"
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "basic_effect"
+    },
       {
-        "type": "apotheosis:affix",
-        "affix_type": "stat"
+        "type": "apotheosis:chanced",
+        "chance": 0.75,
+        "rule": {
+          "type": "apotheosis:affix",
+          "affix_type": "basic_effect"
+        }
       },
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "basic_effect"
-        },
-        {
-            "type": "apotheosis:affix",
-            "affix_type": "basic_effect"
-        },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "ability"
+    },
+    {
+      "type": "apotheosis:affix",
+      "affix_type": "ability"
+    },
       {
-        "type": "apotheosis:affix",
-        "affix_type": "basic_effect"
-      },
-      {
-        "type": "apotheosis:affix",
-        "affix_type": "ability"
-      },
-      {
-        "type": "apotheosis:affix",
-        "affix_type": "ability"
-      },
-      {
-        "type": "apotheosis:affix",
-        "affix_type": "ability"
+        "type": "apotheosis:chanced",
+        "chance": 0.75,
+        "rule": {
+          "type": "apotheosis:affix",
+          "affix_type": "ability"
+        }
       },
       {
         "type": "apotheosis:chanced",
@@ -76,45 +80,37 @@
           "affix_type": "ability"
         }
       },
-      {
-        "type": "apotheosis:chanced",
-        "chance": 0.125,
-        "rule": {
-          "type": "apotheosis:affix",
-          "affix_type": "ability"
+    {
+      "type": "apotheosis:select",
+      "chance": 0.95,
+      "if_false": {
+        "type": "apotheosis:socket",
+        "min": 6,
+        "max": 7
+      },
+      "if_true": {
+        "type": "apotheosis:socket",
+        "min": 4,
+        "max": 5
+      }
+    },
+    {
+      "type": "apotheosis:select",
+      "chance": 0.99,
+      "if_false": {
+        "type": "apotheosis:component",
+        "components": {
+          "!apotheosis:durability_bonus": {},
+          "minecraft:unbreakable": {}
         }
       },
-        {
-            "type": "apotheosis:select",
-            "chance": 0.95,
-            "if_false": {
-                "type": "apotheosis:socket",
-                "min": 6,
-                "max": 6
-            },
-            "if_true": {
-                "type": "apotheosis:socket",
-                "min": 0,
-                "max": 4
-            }
-        },
-        {
-            "type": "apotheosis:select",
-            "chance": 0.99,
-            "if_false": {
-                "type": "apotheosis:component",
-                "components": {
-                    "!apotheosis:durability_bonus": {},
-                    "minecraft:unbreakable": {}
-                }
-            },
-            "if_true": {
-                "type": "apotheosis:durability",
-                "min": 0.45,
-                "max": 0.75
-            }
-        }
-    ],
+      "if_true": {
+        "type": "apotheosis:durability",
+        "min": 0.65,
+        "max": 0.85
+      }
+    }
+  ],
     "sort_index": 700,
     "weights": {
         "haven": {

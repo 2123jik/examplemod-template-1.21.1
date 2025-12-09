@@ -1,7 +1,7 @@
 package com.example.examplemod.server.effect;
 
 
-import com.example.examplemod.init.ModAttachments;
+import com.example.examplemod.register.ModAttachments;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;

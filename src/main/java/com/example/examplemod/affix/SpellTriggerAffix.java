@@ -1,5 +1,6 @@
 package com.example.examplemod.affix;
 
+import com.example.examplemod.ExampleMod;
 import com.example.examplemod.util.SpellCastUtil;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -111,10 +112,14 @@ public class SpellTriggerAffix extends Affix {
         try {
             // 设置正在触发标志位，防止后续逻辑再次触发本方法
             IS_TRIGGERING.set(true);
-
+// 这是一个安全措施，防止因为缺少 SpellCastUtil 导致整个服务器崩溃
+            try {
             // 5. 执行施法 (调用工具类)
             SpellCastUtil.castSpell(caster, spellInstance, spellLevel, target);
-
+        } catch (NoClassDefFoundError | Exception e) {
+            // 打印错误但不要让服务器崩溃
+            ExampleMod.LOGGER.error("Failed to cast spell via affix. Is Iron's Spells installed?", e);
+        }
             // 6. 施法成功后，启动冷却 (如果是 Recast 状态通常不消耗冷却)
             if (!hasActiveRecast && cooldown != 0) {
                 Affix.startCooldown(this.id(), caster);
@@ -292,7 +297,7 @@ public class SpellTriggerAffix extends Affix {
      * 枚举：定义的触发时机类型
      */
     public enum TriggerType {
-        SPELL_DAMAGE, // 法术造成伤害时 (需要在外部事件监听中实现，本类未展示)
+        SPELL_DAMAGE, // 法术造成伤害时
         SPELL_HEAL,   // 法术治疗时
         MELEE_HIT,    // 近战攻击时
         PROJECTILE_HIT, // 弹射物命中时
