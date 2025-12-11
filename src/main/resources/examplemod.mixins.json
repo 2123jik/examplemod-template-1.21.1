@@ -10,6 +10,7 @@
     "apothic.BleedingEffectMixin",
     "apothic.DetonationEffectMixin",
     "apothic.MixinAttributeEvents",
+
     "apothic.MixinWorldTier",
     "cataclysm.AltarOfFireMixin",
     "cataclysm.EffectMonstrousMixin",
@@ -21,6 +22,7 @@
     "dungeonsdelight.ExudationEffectMixin",
     "dungeonsdelight.TenacityEffectMixin",
     "farmersdelight.ComfortEffectMixin",
+    "ironsspellbooks.AlchemistCauldronMixin",
     "ironsspellbooks.ChainLightningMixin",
     "ironsspellbooks.MixinServerPlayerEvents",
     "ironsspellbooks.SacrificeSpellMixin",
@@ -56,6 +58,7 @@
     "ParticleAccessor",
     "apothic.MixinWorldTierSelectScreen",
     "vanilla.AbstractContainerScreenMixin",
+    "vanilla.GameRendererMixin",
     "vanilla.ItemTipRenderMixin",
     "vanilla.ModernContainerScreenMixin",
     "vanilla.MutableSpriteSetMixin",

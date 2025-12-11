@@ -1,6 +1,6 @@
 package com.example.examplemod.mixin.ironsspellbooks;
 
-import com.example.examplemod.accessors.SpellHealEventAccessor;
+import com.example.examplemod.accessor.SpellHealEventAccessor;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;

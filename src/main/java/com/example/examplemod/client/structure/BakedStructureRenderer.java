@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 public class BakedStructureRenderer {
 
     // --- 配置区域 ---
-    private static final ResourceLocation STRUCTURE_ID = ResourceLocation.fromNamespaceAndPath(ExampleMod.MODID, "structures/abandoned_temple/abandoned_road_0.nbt");
+    private static final ResourceLocation STRUCTURE_ID = ResourceLocation.fromNamespaceAndPath(ExampleMod.MODID, "structures/kisegi_sanctuary_main_0.nbt");
 
     public static float GLOBAL_SCALE = 0.0325f;
 
@@ -245,7 +245,7 @@ public class BakedStructureRenderer {
         isBaking = true;
         CompletableFuture.supplyAsync(() -> {
             if (cachedTemplate == null) {
-                return ClientStructureLoader.loadStructure(STRUCTURE_ID);
+                return ClientStructureLoader.loadStructure(ResourceLocation.fromNamespaceAndPath(ExampleMod.MODID, "structures/kisegi_sanctuary_main_0.nbt"));
             }
             return cachedTemplate;
         }).thenAcceptAsync(template -> {

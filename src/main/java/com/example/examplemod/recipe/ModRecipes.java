@@ -3,6 +3,7 @@ package com.example.examplemod.recipe; // 确保包名正确
 import com.example.examplemod.ExampleMod;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.item.crafting.SmithingTransformRecipe;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -27,7 +28,9 @@ public class ModRecipes {
     // 它通常包含 template(模板), base(底材), addition(添加物) 和 result(结果)。
     public static final DeferredHolder<RecipeSerializer<?>, SmithingTransformRecipe.Serializer> APPLY_SCROLL_BONUS_SERIALIZER =
             SERIALIZERS.register("apply_scroll_bonus", SmithingTransformRecipe.Serializer::new);
-
+    public static final DeferredHolder<RecipeSerializer<?>, SimpleCraftingRecipeSerializer<FoodPotionRecipe>> FOOD_POTION_SERIALIZER =
+            SERIALIZERS.register("food_potion_crafting",
+                    () -> new SimpleCraftingRecipeSerializer<>(FoodPotionRecipe::new));
 
     // 注册方法
     // 必须在主类 (ExampleMod.java) 的构造函数中调用此方法：ModRecipes.register(modEventBus);

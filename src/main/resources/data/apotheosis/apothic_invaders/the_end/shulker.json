@@ -1,0 +1,98 @@
+{
+    "type": "apotheosis:invader",
+    "basic_data": {
+        "bonus_loot": [
+            "apotheosis:entity/boss_drops"
+        ],
+        "constraints": {
+            "dimensions": [
+                "minecraft:the_end"
+            ]
+        },
+        "name": "use_name_generation",
+        "valid_gear_sets": {
+            "haven": [
+                "#haven_ranged"
+            ],
+            "frontier": [
+                "#frontier_ranged"
+            ],
+            "ascent": [
+                "#ascent_ranged"
+            ],
+            "summit": [
+                "#summit_ranged"
+            ],
+            "pinnacle": [
+                "#pinnacle_ranged"
+            ]
+        },
+        "weights": {
+            "quality": 2.0,
+            "weight": 20
+        }
+    },
+    "entity": "minecraft:shulker",
+    "size": {
+        "height": 1.25,
+        "width": 1.25
+    },
+    "stats": {
+        "apotheosis:uncommon": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.25,
+            "enchantment_levels": {
+                "primary": 20,
+                "secondary": 12
+            }
+        },
+        "apotheosis:rare": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.35,
+            "enchantment_levels": {
+                "primary": 23,
+                "secondary": 15
+            }
+        },
+        "apotheosis:epic": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.6,
+            "enchantment_levels": {
+                "primary": 35,
+                "secondary": 25
+            }
+        },
+        "apotheosis:mythic": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.75,
+            "enchantment_levels": {
+                "primary": 35,
+                "secondary": 25
+            }
+        }
+    }
+}

@@ -60,9 +60,9 @@ public class Debug {
             String yVal = String.format(Locale.ROOT, "%.2f", player.getY());
             String zVal = String.format(Locale.ROOT, "%.2f", player.getZ());
 
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.x", xVal).withStyle(ChatFormatting.RED));
+            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.x", xVal).withStyle(ChatFormatting.GREEN));
             debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.y", yVal).withStyle(ChatFormatting.GREEN));
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.z", zVal).withStyle(ChatFormatting.BLUE));
+            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.z", zVal).withStyle(ChatFormatting.GREEN));
 
             // --- 3. 方向 (Facing) ---
             // 技巧：直接利用原版的翻译键。原版方向键格式为 "direction.minecraft.north" 等
@@ -71,8 +71,8 @@ public class Debug {
 
             // 组合： "朝向: " + "北"
             MutableComponent facingLine = Component.translatable("gui." + ExampleMod.MODID + ".debug.facing",
-                    Component.translatable(directionKey).withStyle(ChatFormatting.WHITE) // 将方向作为参数传入
-            ).withStyle(ChatFormatting.YELLOW);
+                    Component.translatable(directionKey).withStyle(ChatFormatting.GREEN) // 将方向作为参数传入
+            ).withStyle(ChatFormatting.GREEN);
 
             debugLines.add(facingLine);
 
@@ -88,11 +88,11 @@ public class Debug {
             }
 
             debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.biome",
-                    biomeName.copy().withStyle(ChatFormatting.WHITE)
-            ).withStyle(ChatFormatting.AQUA));
-                debugLines.add(Component.literal("恶意等级："+ ((PlayerDifficulty)((PlayerCapabilityHolder) LHMiscs.PLAYER.type()).getOrCreate(player)).getLevel(player).getStr()).withStyle(ChatFormatting.YELLOW));
-            int startX = 10;
-            int startY = 400;
+                    biomeName.copy().withStyle(ChatFormatting.GREEN)
+            ).withStyle(ChatFormatting.GREEN));
+                debugLines.add(Component.literal("恶意等级："+ ((PlayerDifficulty)((PlayerCapabilityHolder) LHMiscs.PLAYER.type()).getOrCreate(player)).getLevel(player).getStr()).withStyle(ChatFormatting.GREEN));
+            int startX = 2300/mc.options.guiScale().get().intValue();
+            int startY = 70;
             int lineHeight = font.lineHeight + 2;
             int padding = 2;
             int backgroundColor = 0x80000000;

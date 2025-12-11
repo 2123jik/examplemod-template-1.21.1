@@ -33,8 +33,26 @@
     }
   },
   "types": [
-    "apotheosis:melee_weapon",
+    "apotheosis:helmet",
+    "apotheosis:chestplate",
+    "apotheosis:leggings",
+    "apotheosis:boots",
+    "examplemod:back",
+    "examplemod:body",
+    "examplemod:belt",
+    "examplemod:hands",
+    "examplemod:spellbook",
     "examplemod:staff",
-    "examplemod:spellbook"
+    "apotheosis:melee_weapon",
+    "apotheosis:bow",
+    "apotheosis:shield",
+    "apotheosis:trident",
+    "apotheosis:breaker",
+    "examplemod:ring",
+    "examplemod:necklace",
+    "examplemod:bracelet",
+    "examplemod:charm",
+    "examplemod:head",
+    "apotheosis:shears"
   ]
 }

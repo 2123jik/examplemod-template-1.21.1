@@ -1,0 +1,60 @@
+{
+    "type": "placebo:gear_set",
+    "boots": [
+        {
+            "stack": {
+                "count": 1,
+                "id": "minecraft:netherite_boots"
+            },
+            "weight": 10
+        }
+    ],
+    "chestplates": [
+        {
+            "stack": {
+                "count": 1,
+                "id": "minecraft:netherite_chestplate"
+            },
+            "weight": 10
+        }
+    ],
+    "helmets": [
+        {
+            "stack": {
+                "count": 1,
+                "id": "minecraft:netherite_helmet"
+            },
+            "weight": 10
+        },
+        {
+            "stack": {
+                "count": 1,
+                "id": "irons_spellbooks:legionnaire_flamberge"
+            },
+            "weight": 1
+        }
+    ],
+    "leggings": [
+        {
+            "stack": {
+                "count": 1,
+                "id": "minecraft:netherite_leggings"
+            },
+            "weight": 10
+        }
+    ],
+    "mainhands": [
+        {
+            "stack": {
+                "count": 1,
+                "id": "irons_spellbooks:keeper_flamberge"
+            },
+            "weight": 10
+        }
+    ],
+    "quality": 5.0,
+    "tags": [
+        "summit_keeper"
+    ],
+    "weight": 140
+}

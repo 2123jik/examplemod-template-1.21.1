@@ -36,6 +36,33 @@ public class ModEffects {
     public static final Holder<MobEffect> FEAR = MOB_EFFECTS.register("fear",
             () -> new FearEffect(MobEffectCategory.HARMFUL, 0x551a8b));
 
+    public static final Holder<MobEffect> ARMOR = MOB_EFFECTS.register("armor",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> ARMOR_TOUGHNESS = MOB_EFFECTS.register("armor_toughness",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> ATTACK_BURNING_DURATION = MOB_EFFECTS.register("attack_burning_duration",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> ATTACK_KNOCKBACK = MOB_EFFECTS.register("attack_knockback",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> BLOCK_INTERACTION_RANGE = MOB_EFFECTS.register("block_interaction_range",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> DRINKING_SPEED = MOB_EFFECTS.register("drinking_speed",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> EATING_SPEED = MOB_EFFECTS.register("eating_speed",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> FLATULENCE = MOB_EFFECTS.register("flatulence",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> KNOCKBACK_RESISTANCE = MOB_EFFECTS.register("knockback_resistance",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> MINING_SPEED = MOB_EFFECTS.register("mining_speed",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> PROJECTILE_DAMAGE = MOB_EFFECTS.register("projectile_damage",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+    public static final Holder<MobEffect> MOUNT_SPEED = MOB_EFFECTS.register("mount_speed",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
     // 注册一个名为 "maken_power" (魔剑之力/玛肯之力) 的效果。
     // .register 参数说明:
     //   - "maken_power": 注册名，游戏内 ID 为 examplemod:maken_power。
@@ -44,4 +71,24 @@ public class ModEffects {
     //     - 0xff4500: 效果粒子的颜色（十六进制 RGB，此处为橙红色）。
     public static final Holder<MobEffect> MAKEN_POWER = MOB_EFFECTS.register("maken_power",
             () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+
+    public static final Holder<MobEffect> MOVEMENT_SPEED_ON_SNOW = MOB_EFFECTS.register("movement_speed_on_snow",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> SLIP_RESISTANCE = MOB_EFFECTS.register("slip_resistance",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> SPRINTING_SPEED = MOB_EFFECTS.register("sprinting_speed",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> SPRINTING_STEP_HEIGHT = MOB_EFFECTS.register("sprinting_step_height",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+
+
+
+
+
+
 }

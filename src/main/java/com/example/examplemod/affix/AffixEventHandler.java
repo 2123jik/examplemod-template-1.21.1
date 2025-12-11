@@ -185,57 +185,6 @@ public class AffixEventHandler {
         }
     }
 
-    /**
-     * 处理法力值(Mana)变更事件，实现法力消耗减少词缀
-     */
-    @SubscribeEvent
-    public void onChangeMana(ChangeManaEvent event) {
-        if (event.getEntity().level().isClientSide()) return;
-
-        Player player = event.getEntity();
-        MagicData magicData = event.getMagicData();
-        SpellData castingSpell = magicData.getCastingSpell();
-
-        // 如果没有正在释放的法术，或者法力值是在增加（而不是消耗），则跳过
-        if (castingSpell == null || event.getNewMana() >= event.getOldMana()) {
-            return;
-        }
-
-        AbstractSpell spell = castingSpell.getSpell();
-        if (spell == null) return;
-
-        SchoolType spellSchool = spell.getSchoolType(); // 获取当前法术的学派
-
-        // 仅检查主手物品 (例如法杖或近战武器)
-        ItemStack mainHand = player.getMainHandItem();
-        if (mainHand.isEmpty()) return;
-
-        float totalReduction = 0f;
-
-        // 获取主手物品上的所有词缀
-        Map<DynamicHolder<Affix>, AffixInstance> affixes = AffixHelper.getAffixes(mainHand);
-        for (AffixInstance instance : affixes.values()) {
-            if (instance.isValid() && instance.affix().isBound()) {
-                Affix affix = instance.getAffix();
-                // 检查是否为法力减耗词缀 (ManaCostAffix) 且学派匹配
-                if (affix instanceof ManaCostAffix manaCostAffix) {
-                    if (manaCostAffix.getSchool() == spellSchool) {
-                        float reduction = manaCostAffix.getReductionPercent(instance.getRarity(), instance.level());
-                        totalReduction += reduction;
-                    }
-                }
-            }
-        }
-
-        // 应用减免
-        if (totalReduction > 0) {
-            float manaCost = event.getOldMana() - event.getNewMana();
-            // 计算新的消耗，最大减免限制为 90% (0.9f)
-            float reducedCost = manaCost * (1 - Math.min(totalReduction, 0.9f));
-            float newManaValue = event.getOldMana() - reducedCost;
-            event.setNewMana(newManaValue);
-        }
-    }
 
     /**
      * 处理法术等级修改事件

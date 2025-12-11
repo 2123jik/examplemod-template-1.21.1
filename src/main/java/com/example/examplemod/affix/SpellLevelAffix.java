@@ -1,6 +1,5 @@
 package com.example.examplemod.affix;
 
-import com.example.examplemod.util.AffixSchoolMapper;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.shadowsoffire.apotheosis.affix.Affix;
@@ -97,16 +96,10 @@ public class SpellLevelAffix extends Affix {
 
     @Override
     public boolean canApplyTo(ItemStack stack, LootCategory cat, LootRarity rarity) {
-        if (cat.isNone() || !this.values.containsKey(rarity)) {
-            return false;
-        }
-        if (!this.validTypes.isEmpty() && !this.validTypes.contains(cat)) {
-            return false;
-        }
+        return !cat.isNone() && this.values.containsKey(rarity);
+//        return this.validTypes.isEmpty() || this.validTypes.contains(cat);
 
-        Set<SchoolType> gearSchools = AffixSchoolMapper.getSpellSchoolsFromGear(stack);
-
-        return gearSchools.contains(this.school);
+//        Set<SchoolType> gearSchools = AffixSchoolMapper.getSpellSchoolsFromGear(stack);
     }
 
     public record LevelData(StepFunction level) {

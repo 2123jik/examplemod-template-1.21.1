@@ -13,9 +13,10 @@ import com.example.examplemod.recipe.ModRecipes;
 import com.example.examplemod.register.ModEntities;
 import com.example.examplemod.register.ModItems;
 import com.example.examplemod.register.ModMenus;
-import com.example.examplemod.server.damage.DamageIndicatorListener;
 import com.example.examplemod.server.loot.ModLootModifiers;
 import com.example.examplemod.spells.SpellRegistries;
+import com.example.examplemod.util.EntityAttributeExporter;
+import com.example.examplemod.util.EntityLootTableExporter;
 import dev.shadowsoffire.apotheosis.affix.AffixRegistry;
 import dev.xkmc.l2damagetracker.contents.attack.AttackEventHandler;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
@@ -27,6 +28,7 @@ import net.minecraft.resources.ResourceLocation;
 //import net.neoforged.api.distmarker.Dist;
 //import net.neoforged.fml.loading.FMLEnvironment;
 //import net.neoforged.neoforge.event.TagsUpdatedEvent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -34,6 +36,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -57,9 +60,7 @@ public class ExampleMod {
     public static final String MODID = "examplemod";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final NetworkHandler NETWORK_HANDLER = NetworkHandler.builder(MODID)
-            .registerSerializer(ServerboundOpenBlockInHandMessage.class, ServerboundOpenBlockInHandMessage.STREAM_CODEC)
-            .registerServerbound(ServerboundOpenBlockInHandMessage.class);
+    public static final NetworkHandler NETWORK_HANDLER = NetworkHandler.builder(MODID).registerSerializer(ServerboundOpenBlockInHandMessage.class, ServerboundOpenBlockInHandMessage.STREAM_CODEC).registerServerbound(ServerboundOpenBlockInHandMessage.class);
 
     public ExampleMod(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
@@ -86,27 +87,37 @@ public class ExampleMod {
             }
         });
     }
+
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            // 注册上面的监听器
-            AttackEventHandler.register(10000, new DamageIndicatorListener());
-        });
-        AffixRegistry.INSTANCE.registerCodec(loc("attribute"), SchoolAttributeAffix.CODEC);
         AffixRegistry.INSTANCE.registerCodec(loc("spell_effect"), SpellEffectAffix.CODEC);
         AffixRegistry.INSTANCE.registerCodec(loc("magic_telepathic"), MagicTelepathicAffix.CODEC);
+
         AffixRegistry.INSTANCE.registerCodec(loc("spell_level"), SpellLevelAffix.CODEC);
         AffixRegistry.INSTANCE.registerCodec(loc("spell_trigger"), SpellTriggerAffix.CODEC);
-        AffixRegistry.INSTANCE.registerCodec(loc("mana_cost"), ManaCostAffix.CODEC);
 
     }
 // 假设 LOGGER 已经定义
 
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
+    public void onServerStarting(ServerStartingEvent event)
+    {
 
-
-        LOGGER.info("HELLO from server starting");
+//        LOGGER.info("HELLO from server starting - 开始导出数据任务");
+//
+//        // 获取服务器实例（对于获取 LootData 至关重要）
+//        MinecraftServer server = event.getServer();
+//
+//        // 1. 导出战利品表 (需要 server 实例来解析 Codec 和获取数据)
+//        EntityLootTableExporter lootExporter = new EntityLootTableExporter();
+//        // 这一步是耗时操作，建议仅在开发环境运行
+//        lootExporter.exportAllEntityLootTables(server);
+//
+//        // 2. 导出属性
+//        EntityAttributeExporter attributeExporter = new EntityAttributeExporter();
+//        attributeExporter.exportAllEntityAttributes();
+//
+//        LOGGER.info("数据导出任务结束");
     }
 //    private static final AtomicBoolean IS_EXPORTING = new AtomicBoolean(false);
 //    //    @SubscribeEvent

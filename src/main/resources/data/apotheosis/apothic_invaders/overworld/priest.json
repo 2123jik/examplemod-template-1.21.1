@@ -1,0 +1,98 @@
+{
+    "type": "apotheosis:invader",
+    "basic_data": {
+        "bonus_loot": [
+            "apotheosis:entity/boss_drops"
+        ],
+        "constraints": {
+            "dimensions": [
+                "minecraft:overworld"
+            ]
+        },
+        "name": "use_name_generation",
+        "valid_gear_sets": {
+            "haven": [
+                "#priest"
+            ],
+            "frontier": [
+                "#priest"
+            ],
+            "ascent": [
+                "#priest"
+            ],
+            "summit": [
+                "#priest"
+            ],
+            "pinnacle": [
+                "#priest"
+            ]
+        },
+        "weights": {
+            "quality": 0.1,
+            "weight": 100
+        }
+    },
+    "entity": "irons_spellbooks:priest",
+    "size": {
+        "height": 2.45,
+        "width": 0.75
+    },
+    "stats": {
+        "apotheosis:uncommon": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.25,
+            "enchantment_levels": {
+                "primary": 20,
+                "secondary": 12
+            }
+        },
+        "apotheosis:rare": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.35,
+            "enchantment_levels": {
+                "primary": 23,
+                "secondary": 15
+            }
+        },
+        "apotheosis:epic": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.6,
+            "enchantment_levels": {
+                "primary": 35,
+                "secondary": 25
+            }
+        },
+        "apotheosis:mythic": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.75,
+            "enchantment_levels": {
+                "primary": 35,
+                "secondary": 25
+            }
+        }
+    }
+}

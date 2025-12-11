@@ -1,0 +1,104 @@
+{
+    "neoforge:conditions": [
+    ],
+    "type": "apotheosis:invader",
+    "basic_data": {
+        "bonus_loot": [
+            "apotheosis:entity/boss_drops",
+            "apotheosis:entity/rare_boss_drops"
+        ],
+        "constraints": {
+        },
+        "name": "use_name_generation",
+        "valid_gear_sets": {
+            "haven": [
+                "#haven_melee"
+            ],
+            "frontier": [
+                "#frontier_melee"
+            ],
+            "ascent": [
+                "#ascent_melee"
+            ],
+            "summit": [
+                "#summit_melee"
+            ],
+            "pinnacle": [
+                "#pinnacle_melee"
+            ]
+        },
+        "weights": {
+            "summit": {
+                "quality": 0.1,
+                "weight": 100
+            },
+            "pinnacle": {
+                "quality": 0.1,
+                "weight": 100
+            }
+        }
+    },
+    "entity": "twilightforest:carminite_golem",
+    "size": {
+        "height": 1.3,
+        "width": 1.25
+    },
+    "stats": {
+        "apotheosis:uncommon": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.25,
+            "enchantment_levels": {
+                "primary": 20,
+                "secondary": 12
+            }
+        },
+        "apotheosis:rare": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.35,
+            "enchantment_levels": {
+                "primary": 23,
+                "secondary": 15
+            }
+        },
+        "apotheosis:epic": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.6,
+            "enchantment_levels": {
+                "primary": 35,
+                "secondary": 25
+            }
+        },
+        "apotheosis:mythic": {
+            "attribute_modifiers": [],
+            "effects": [
+                {
+                    "amplifier": 1.0,
+                    "effect": "minecraft:fire_resistance"
+                }
+            ],
+            "enchant_chance": 0.75,
+            "enchantment_levels": {
+                "primary": 35,
+                "secondary": 25
+            }
+        }
+    }
+}

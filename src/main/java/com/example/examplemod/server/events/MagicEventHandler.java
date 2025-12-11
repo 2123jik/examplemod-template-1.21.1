@@ -1,8 +1,7 @@
 package com.example.examplemod.server.events;
 
-import com.example.examplemod.accessors.SpellHealEventAccessor;
+import com.example.examplemod.accessor.SpellHealEventAccessor;
 import com.example.examplemod.component.SpellBonusData;
-import com.example.examplemod.server.util.ServerEventUtils;
 import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.apothic_attributes.payload.CritParticlePayload;
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;

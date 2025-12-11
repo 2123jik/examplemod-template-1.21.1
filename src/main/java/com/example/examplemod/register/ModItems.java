@@ -1,5 +1,6 @@
 package com.example.examplemod.register;
 
+import com.example.examplemod.item.MiniatureStructureItem;
 import com.example.examplemod.item.StarterKitItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
@@ -15,7 +16,8 @@ public class ModItems {
     // 注册新手礼包物品
     public static final DeferredHolder<Item, StarterKitItem> STARTER_KIT = ITEMS.register("starter_kit", 
             () -> new StarterKitItem(new Item.Properties().rarity(Rarity.EPIC).stacksTo(1)));
-
+    public static final DeferredHolder<Item, Item> MINIATURE_STRUCTURE_ITEM =
+            ITEMS.register("miniature_structure_item", () -> new MiniatureStructureItem(new Item.Properties()));
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

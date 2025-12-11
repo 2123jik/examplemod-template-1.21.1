@@ -1,6 +1,6 @@
 package com.example.examplemod.client.time;
 
-import com.example.examplemod.register.ModEffects;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
@@ -9,7 +9,11 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
@@ -39,26 +43,30 @@ public class TimeEchoRenderer {
         Minecraft mc = Minecraft.getInstance();
         AbstractClientPlayer player = mc.player;
         if (player == null || mc.level == null) return;
+        if(player.hasEffect(MobEffects.DAMAGE_BOOST))
+        {
 
-        if (!player.hasEffect(ModEffects.MAKEN_POWER)) return;
 
-        if (TimeTravelManager.isRenderingEcho) return;
-        TimeTravelManager.isRenderingEcho = true;
+            {
+            if (TimeTravelManager.isRenderingEcho) return;
+            TimeTravelManager.isRenderingEcho = true;
 
-        try {
-            PoseStack poseStack = event.getPoseStack();
-            Vec3 camPos = event.getCamera().getPosition();
-            MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
+            try {
+                PoseStack poseStack = event.getPoseStack();
+                Vec3 camPos = event.getCamera().getPosition();
+                MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
 
-            // 设置为 0.8 秒
-            float delaySeconds = 0.8f;
-            float alpha = 0.3f;
+                // 设置为 0.8 秒
+                float delaySeconds = 0.8f;
+                float alpha = 0.3f;
 
-            renderSwapGhost(mc, player, delaySeconds, camPos, poseStack, bufferSource, alpha);
+                renderSwapGhost(mc, player, delaySeconds, camPos, poseStack, bufferSource, alpha);
 
-            bufferSource.endBatch();
-        } finally {
-            TimeTravelManager.isRenderingEcho = false;
+                bufferSource.endBatch();
+            } finally {
+                TimeTravelManager.isRenderingEcho = false;
+            }
+            }
         }
     }
 

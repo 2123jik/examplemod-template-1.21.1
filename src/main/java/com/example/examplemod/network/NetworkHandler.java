@@ -2,14 +2,17 @@ package com.example.examplemod.network;
 
 import com.example.examplemod.ExampleMod;
 import com.example.examplemod.client.ClientDamageHandler;
+import com.example.examplemod.client.util.ClientEffectMapUpdater;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 @EventBusSubscriber(modid = ExampleMod.MODID)
 public class NetworkHandler {
@@ -42,6 +45,11 @@ public class NetworkHandler {
                         TradeActionPayload::handleServer, // 客户端发给服务端
                         (payload, context) -> {}          // 服务端发给客户端(如果有的话，这里不需要)
                 )
+        );
+        registrar.playToClient(
+                MobEffectStatusPacket.TYPE,
+                MobEffectStatusPacket.STREAM_CODEC,
+                NetworkHandler::handleMobEffectStatusSync // 引用下面定义的处理方法
         );
     }
 
@@ -88,5 +96,23 @@ public class NetworkHandler {
                 // player.displayClientMessage(Component.literal("属性已更新!"), true);
             }
         });
+    }
+    /**
+     * 【客户端】接收到 MobEffectStatusPacket 后的处理逻辑。
+     * 将同步数据交给 ClientEffectMapUpdater 处理。
+     */
+    private static void handleMobEffectStatusSync(final MobEffectStatusPacket payload, final IPayloadContext context) {
+        // 确保在客户端主线程执行
+        context.enqueueWork(() -> {
+            // 【新增日志】确认客户端收到了数据包
+            ExampleMod.LOGGER.info("Client | Network: Received MobEffectStatusPacket. Entity UUID: {}, Effect: {}, Action: {}",
+                    payload.entityUuid(), payload.effectId(), payload.action());
+
+            ClientEffectMapUpdater.handleMobEffectStatusPacket(payload);
+        });
+    }
+    public static void sendToTracking(MobEffectStatusPacket packet, LivingEntity entity) {
+        // 使用 PacketDistributor.TRACKING_ENTITY 将数据包发送给所有正在跟踪该实体的玩家
+//        PacketDistributor.sendToPlayersTrackingEntity(entity, packet);
     }
 }
