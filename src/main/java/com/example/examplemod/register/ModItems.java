@@ -18,6 +18,9 @@ public class ModItems {
             () -> new StarterKitItem(new Item.Properties().rarity(Rarity.EPIC).stacksTo(1)));
     public static final DeferredHolder<Item, Item> MINIATURE_STRUCTURE_ITEM =
             ITEMS.register("miniature_structure_item", () -> new MiniatureStructureItem(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> WARLORD =
+            ITEMS.register("warlord", () -> new Item(new Item.Properties().rarity(Rarity.EPIC).stacksTo(1)));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

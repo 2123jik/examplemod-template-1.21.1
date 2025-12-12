@@ -21,6 +21,19 @@ repositories {
     maven { // Registrate
         url "https://maven.ithundxr.dev/snapshots"
     }
+
+        maven { url = "https://maven.enginehub.org/repo/" }
+        maven {
+            url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+            content {
+                includeGroup("software.bernie.geckolib")
+            }
+        }
+        maven { url = "https://maven.theillusivec4.top" }
+        maven { url = "https://cursemaven.com" }
+        maven { url = "https://maven.blamejared.com" }
+        maven { url = "https://maven.kosmx.dev/" }
+
     // Add here additional repositories if required by some of the dependencies below.
 }
 
@@ -118,7 +131,8 @@ dependencies {
     compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
    implementation fileTree(dir: 'C:/Users/lyj/Saved Games/mc/.minecraft/versions/1.21.1-NeoForge_21.1.215/mods',
            include: ['*.jar'],exclude: ['ProbeJS-7.7.2.jar', 'kubejs-neoforge-2101.7.2-build.321.jar','rhino-2101.2.7-build.81.jar','examplemod-1.0.0.jar'])
-
+    runtimeOnly "curse.maven:atlasviewer-633577:6088094"
+        localRuntime "curse.maven:atlas-api-1145462:5940096"
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"

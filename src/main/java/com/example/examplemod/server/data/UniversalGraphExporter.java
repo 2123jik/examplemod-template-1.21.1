@@ -342,10 +342,7 @@ public class UniversalGraphExporter {
         long stackId = createNode(conn, parentId, "INSTANCE", String.valueOf(index), displayValue);
         linkToDefinitions(conn, stackId, itemUid);
 
-        // =================================================================
-        // 🌟 新增：把创造模式实例的 Tooltip (包含Lore, 属性, 附魔) 写入搜索索引
-        // 这样你就能搜到 "暴击伤害", "保护 IV" 等具体数值了
-        // =================================================================
+
         exportInstanceTooltipToFts(conn, stackId, stack);
         // =================================================================
 

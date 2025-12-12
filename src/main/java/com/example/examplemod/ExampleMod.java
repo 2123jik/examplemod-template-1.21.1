@@ -6,6 +6,7 @@ import com.example.examplemod.category.SlotGroups;
 import com.example.examplemod.client.gui.InventoryModelRenderer;
 
 import com.example.examplemod.client.particle.ModParticles;
+import com.example.examplemod.client.tooltip.TooltipResolver;
 import com.example.examplemod.component.ModDataComponents;
 import com.example.examplemod.register.ModEffects;
 import com.example.examplemod.network.ServerboundOpenBlockInHandMessage;

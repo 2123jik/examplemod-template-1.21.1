@@ -85,10 +85,24 @@ public class ModEffects {
     public static final Holder<MobEffect> SPRINTING_STEP_HEIGHT = MOB_EFFECTS.register("sprinting_step_height",
             () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
 
+    public static final Holder<MobEffect> LIFE_STEAL = MOB_EFFECTS.register("life_steal",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> GOLEM_JUMP = MOB_EFFECTS.register("golem_jump",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
+
+    public static final Holder<MobEffect> GOLIATH_SLAYER = MOB_EFFECTS.register("goliath_slayer",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
 
 
+    public static final Holder<MobEffect> SCALE = MOB_EFFECTS.register("scale",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
 
+    public static final Holder<MobEffect> ATTACK_SPEED = MOB_EFFECTS.register("attack_speed",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
 
+    public static final Holder<MobEffect> MANA_REGEN = MOB_EFFECTS.register("mana_regen",
+            () -> new MakenPowerEffect(MobEffectCategory.BENEFICIAL, 0xff4500));
 
 
 }

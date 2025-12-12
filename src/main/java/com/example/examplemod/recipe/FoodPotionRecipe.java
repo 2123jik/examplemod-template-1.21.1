@@ -60,9 +60,9 @@ public class FoodPotionRecipe extends CustomRecipe {
             ItemStack stack = input.getItem(i);
             if (stack.isEmpty()) continue;
             if (stack.has(DataComponents.FOOD)) {
-                foodStack = stack;
+                foodStack = stack.copy();//必须要copy,解释为什么
             } else if (stack.has(DataComponents.POTION_CONTENTS)) {
-                potionStack = stack;
+                potionStack = stack.copy();
             }
         }
 

@@ -29,6 +29,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.gui.ClientTooltipComponentManager;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -41,12 +42,8 @@ import static com.example.examplemod.register.ModEntities.GOLDENGATEENTITY;
 public class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
-        // 核心代码：告诉游戏，当遇到 TRADE_MENU 类型时，使用 TradeScreen 来渲染
-        // ModMenus.TRADE_MENU.get() 是你注册的 MenuType
-        // TradeScreen::new 是构造函数的引用
         event.register(ModMenus.TRADE_MENU.get(), TradeScreen::new);
     }
-
     // 定义按键 (例如 'K' 键)
     public static final KeyMapping OPEN_EDITOR_KEY = new KeyMapping(
             "key.examplemod.open_editor",
@@ -54,12 +51,9 @@ public class ClientSetup {
             GLFW.GLFW_KEY_K,
             "key.categories.examplemod"
     );
-
     @SubscribeEvent
-    public static void onclient(FMLClientSetupEvent event) {
+    public static void onclientsetup(FMLClientSetupEvent event) {
     }
-
-
 
 
     @SubscribeEvent

@@ -1,6 +1,7 @@
 package com.example.examplemod.server.util;
 
 import com.google.common.collect.ImmutableMap;
+import dev.shadowsoffire.apotheosis.Apoth;
 import dev.shadowsoffire.apotheosis.Apotheosis;
 import dev.shadowsoffire.apotheosis.affix.AffixHelper;
 import dev.shadowsoffire.apotheosis.loot.LootRarity;
@@ -70,6 +71,7 @@ public class ServerEventUtils {
         if (mythicRarity != null) {
             AffixHelper.setRarity(stack, mythicRarity);
         }
+
     }
 
     /**

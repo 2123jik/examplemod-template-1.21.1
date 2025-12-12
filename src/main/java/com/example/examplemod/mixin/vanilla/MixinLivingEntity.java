@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntity.class)
@@ -41,43 +42,15 @@ public abstract class MixinLivingEntity {
             this.getAttributes().load(tag.getList("Attributes", 10)); // 10 是 TAG_COMPOUND 的类型ID
         }
     }
-    /**
-     * @author
-     * @reason
-     */
-    @Overwrite
-    private boolean checkTotemDeathProtection(DamageSource damageSource){
-        LivingEntity player = (LivingEntity)(Object)this;
-        if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            return false;
-        } else {
-            ItemStack itemstack = null;
-
-            for (InteractionHand interactionhand : InteractionHand.values()) {
-                ItemStack itemstack1 = player.getItemInHand(interactionhand);
-                if (itemstack1.is(Items.TOTEM_OF_UNDYING) && net.neoforged.neoforge.common.CommonHooks.onLivingUseTotem(player, damageSource, itemstack1, interactionhand)) {
-                    itemstack = itemstack1.copy();
-                    itemstack1.shrink(1);
-                    break;
-                }
-            }
-
-            if (itemstack != null) {
-                if (player instanceof ServerPlayer serverplayer) {
-                    serverplayer.awardStat(Stats.ITEM_USED.get(Items.TOTEM_OF_UNDYING), 1);
-                    CriteriaTriggers.USED_TOTEM.trigger(serverplayer, itemstack);
-                    player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
-                }
-
-                player.setHealth(player.getMaxHealth()*0.1f);
-                player.removeEffectsCuredBy(net.neoforged.neoforge.common.EffectCures.PROTECTED_BY_TOTEM);
-                player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 900, 1));
-                player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 1));
-                player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 800, 0));
-                player.level().broadcastEntityEvent(player, (byte)35);
-            }
-
-            return itemstack != null;
-        }
+    @Redirect(
+            method = "checkTotemDeathProtection",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V" // 目标是 setHealth 方法
+            )
+    )
+    private void redirectSetHealth(LivingEntity instance, float originalHealth) {
+        float modifiedHealth = instance.getMaxHealth() * 0.1f;
+        instance.setHealth(modifiedHealth);
     }
 }
