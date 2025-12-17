@@ -4,6 +4,13 @@ import com.example.examplemod.ExampleMod;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.capabilities.magic.SpellContainer;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -13,9 +20,12 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
@@ -34,11 +44,14 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import org.jline.utils.Log;
 import org.joml.Matrix4f;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+
+import static io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL;
 
 @EventBusSubscriber(value = Dist.CLIENT)
 public class BakedStructureRenderer {
@@ -110,7 +123,13 @@ public class BakedStructureRenderer {
         @Override
         public net.minecraft.world.level.block.entity.BlockEntity getBlockEntity(BlockPos pos) { return null; }
     }
-
+    //private static final boolean test=true;
+    private static void println(final Object o) {
+        System.out.println(o);
+    }
+    private static void println1(final Object o) {
+        System.out.println(o);
+    }
     // --- 交互触发 ---
     @SubscribeEvent
     public static void onPlayerPlaceBlock(PlayerInteractEvent.RightClickBlock event) {
@@ -119,6 +138,7 @@ public class BakedStructureRenderer {
             allInstances.add(targetPos);
             if (cachedSections.isEmpty() && !isBaking) triggerBakingPipeline();
         }
+
     }
 
     // --- 渲染循环 ---

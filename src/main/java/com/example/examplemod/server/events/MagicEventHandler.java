@@ -77,7 +77,7 @@ public class MagicEventHandler {
             forgeData.put(SPELL_CAST_COUNT_TAG, spellCounts);
             persistentData.put(ServerPlayer.PERSISTED_NBT_TAG, forgeData);
         }
-        event.setManaCost(event.getManaCost() / 2);
+//        event.setManaCost(event.getManaCost() / 2);
     }
 
     @SubscribeEvent
@@ -121,27 +121,8 @@ public class MagicEventHandler {
 
     @SubscribeEvent
     public static void onModifySpellLevel(ModifySpellLevelEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (entity == null) return;
 
-        ResourceLocation spellId = event.getSpell().getSpellResource();
-        SchoolType schoolType = event.getSpell().getSchoolType();
-        int totalBonus = 0;
-
-        totalBonus += getBonusFromStack(entity.getMainHandItem(), spellId, schoolType);
-        totalBonus += getBonusFromStack(entity.getOffhandItem(), spellId, schoolType);
-        for (ItemStack armorStack : entity.getArmorSlots()) {
-            totalBonus += getBonusFromStack(armorStack, spellId, schoolType);
-        }
-
-        totalBonus += getBonusFromCurios(entity, spellId, schoolType);
-
-        if (totalBonus > 0) {
-            event.setLevel(event.getLevel() + totalBonus);
-        }
     }
-
-    // --- Helpers ---
 
     private static int getProficiencyForSpell(LivingEntity caster, String spellId) {
         CompoundTag spellCounts = caster.getPersistentData().getCompound(ServerPlayer.PERSISTED_NBT_TAG).getCompound(SPELL_CAST_COUNT_TAG);

@@ -9,6 +9,7 @@
     "apothic.AffixItemEffectRendererMixin",
     "apothic.AttributesGuiIconMixin",
     "apothic.BleedingEffectMixin",
+    "apothic.CancelRangedCheckMixin",
     "apothic.DetonationEffectMixin",
     "apothic.MixinAttributeEvents",
     "apothic.MixinWorldTier",
@@ -24,7 +25,9 @@
     "farmersdelight.ComfortEffectMixin",
     "ironsspellbooks.AlchemistCauldronMixin",
     "ironsspellbooks.ChainLightningMixin",
+    "ironsspellbooks.MixinManaBarOverlay",
     "ironsspellbooks.MixinServerPlayerEvents",
+    "ironsspellbooks.MixinSpellBarOverlay",
     "ironsspellbooks.SacrificeSpellMixin",
     "ironsspellbooks.SpellHealEventMixin",
     "vanilla.AbsorptionMobEffectMixin",
@@ -40,7 +43,6 @@
     "vanilla.MixinMob",
     "vanilla.MixinPoisonMobEffect",
     "vanilla.MixinWitherMobEffect",
-    "vanilla.MobEffectInstanceMixin",
     "vanilla.MobEffectsMixin",
     "vanilla.PlayerMixin",
     "vanilla.RangedAttributeMixin",
@@ -58,11 +60,12 @@
   "client": [
     "ParticleAccessor",
     "apothic.MixinWorldTierSelectScreen",
-    "vanilla.AbstractContainerScreenMixin",
     "vanilla.GameRendererMixin",
     "vanilla.ItemTipRenderMixin",
     "vanilla.ModernContainerScreenMixin",
     "vanilla.MutableSpriteSetMixin",
-    "vanilla.ParticleEngineMixin"
+    "vanilla.ParticleEngineMixin",
+    "vanilla.VertexConsumerMixin",
+    "vanilla.WindowMixin"
   ]
 }

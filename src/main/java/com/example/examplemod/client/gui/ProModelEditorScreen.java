@@ -124,7 +124,7 @@ public class ProModelEditorScreen extends Screen {
         public String displayContext = "FIXED";
         public boolean visible = true;
         public float tx = 0, ty = 0, tz = 0;
-        public float rx = 0, ry = 0, rz = 0;
+        public float rx = 180, ry = 0, rz = 0;
         public float sx = 1, sy = 1, sz = 1;
         private transient ItemStack cachedStack;
 

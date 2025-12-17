@@ -1,7 +1,12 @@
 package com.example.examplemod.server.events;
 
+import dev.xkmc.l2hostility.init.registrate.LHMiscs;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.neoforged.bus.api.EventPriority;
@@ -14,6 +19,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.example.examplemod.ExampleMod.MODID;
+import static dev.xkmc.l2hostility.init.registrate.LHItems.HOSTILITY_ORB;
 
 @EventBusSubscriber(modid = MODID)
 public class DataRegistryHandler {
@@ -37,5 +43,7 @@ public class DataRegistryHandler {
         specificItems.forEach(item -> event.modifyMatching(item::equals, SET_MAX_STACK_64));
 
         event.modifyMatching(item -> item.getDefaultInstance().has(DataComponents.JUKEBOX_PLAYABLE) && item.getDefaultInstance().getRarity() == Rarity.RARE, SET_MAX_STACK_64);
+
+
     }
 }

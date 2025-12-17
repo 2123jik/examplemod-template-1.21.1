@@ -1,0 +1,80 @@
+{
+  "type": "examplemod:spell_trigger",
+  "definition": {
+    "affix_type": "ability",
+    "weights": {
+      "weight": 15,
+      "quality": 0.5
+    },
+    "exclusive_set": []
+  },
+  "spell": "irons_spellbooks:acupuncture",
+  "trigger": "SPELL_DAMAGE",
+  "target": "TARGET",
+  "values": {
+    "apotheosis:common": {
+      "level": {
+        "min": 1.0,
+        "steps": 1,
+        "step": 0.0
+      },
+      "cooldown": 600
+    },
+    "apotheosis:uncommon": {
+      "level": {
+        "min": 1.0,
+        "steps": 2,
+        "step": 0.0
+      },
+      "cooldown": 480
+    },
+    "apotheosis:rare": {
+      "level": {
+        "min": 2.0,
+        "steps": 3,
+        "step": 1.0
+      },
+      "cooldown": 360
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 3.0,
+        "steps": 4,
+        "step": 1.0
+      },
+      "cooldown": 240
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 5.0,
+        "steps": 5,
+        "step": 1.0
+      },
+      "cooldown": 120
+    }
+  },
+  "types": [
+    "apotheosis:boots",
+    "apotheosis:chestplate",
+    "apotheosis:helmet",
+    "apotheosis:leggings",
+    "apotheosis:melee_weapon",
+    "apotheosis:trident",
+    "apotheosis:bow",
+    "examplemod:spellbook",
+    "examplemod:staff",
+    "apotheosis:breaker",
+    "apotheosis:shears",
+    "apotheosis:shield",
+    "examplemod:back",
+    "examplemod:belt",
+    "examplemod:body",
+    "examplemod:bracelet",
+    "examplemod:charm",
+    "examplemod:hands",
+    "examplemod:head",
+    "examplemod:necklace",
+    "examplemod:ring",
+    "examplemod:sheath"
+  ]
+}

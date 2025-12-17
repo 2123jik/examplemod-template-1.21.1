@@ -57,10 +57,28 @@ public class FoodPotionRecipe extends CustomRecipe {
 
         // 1. 再次遍历找到对应的物品
         for (int i = 0; i < input.size(); i++) {
-            ItemStack stack = input.getItem(i);
+            ItemStack stack = input.getItem(i); // 这是合成栏里的原始对象
             if (stack.isEmpty()) continue;
+
             if (stack.has(DataComponents.FOOD)) {
-                foodStack = stack.copy();//必须要copy,解释为什么
+                // ================== 调试引用关键点 ==================
+                int originalId = System.identityHashCode(stack);
+                System.out.println(">>> 发现食物 (Slot " + i + ")");
+                System.out.println("    [1] 原始物品内存ID: " + originalId);
+
+                foodStack = stack.copy(); // 执行复制
+
+                int copyId = System.identityHashCode(foodStack);
+                System.out.println("    [2] 复制副本内存ID: " + copyId);
+
+                // 核心验证：如果是 false，说明安全；如果是 true，说明你会改到原来的物品
+                System.out.println("    [3] 是否为同一个对象 (危险检查): " + (stack == foodStack));
+
+                if (stack == foodStack) {
+                    System.err.println("!!! 严重警告：你正在直接使用原始物品引用，会导致刷物品BUG !!!");
+                }
+                // ===================================================
+
             } else if (stack.has(DataComponents.POTION_CONTENTS)) {
                 potionStack = stack.copy();
             }
@@ -77,34 +95,35 @@ public class FoodPotionRecipe extends CustomRecipe {
         if (oldFoodProp == null || potionContents == null) return ItemStack.EMPTY;
 
         // 3. 构建新的效果列表
-        // 注意：FoodProperties 是 record，不可变，所以要创建新的 List
         List<FoodProperties.PossibleEffect> newEffects = new ArrayList<>(oldFoodProp.effects());
 
-        // 遍历药水中的所有效果 (包括原版药水效果和自定义NBT效果)
         for (MobEffectInstance effect : potionContents.getAllEffects()) {
-            // 创建 PossibleEffect，概率设为 1.0 (100%)
-            // 使用 Supplier 包装 effect 的副本
-            newEffects.add(new FoodProperties.PossibleEffect(() -> new MobEffectInstance(effect), 1.0F));
+            newEffects.add(new FoodProperties.PossibleEffect(()-> new MobEffectInstance(effect),1.0f));
         }
-        
+
         // 4. 创建新的 FoodProperties
-        // 依照源码中的 record 构造函数：nutrition, saturation, canAlwaysEat, eatSeconds, usingConvertsTo, effects
         FoodProperties newFoodProp = new FoodProperties(
                 oldFoodProp.nutrition(),
                 oldFoodProp.saturation(),
                 oldFoodProp.canAlwaysEat(),
                 oldFoodProp.eatSeconds(),
-                oldFoodProp.usingConvertsTo(), // 保持原有的返回物品 (例如 迷之炖菜吃完给碗)
+                oldFoodProp.usingConvertsTo(),
                 newEffects
         );
 
         // 5. 复制食物并应用新组件
+        // 这里你原本写了第二次 copy
         ItemStack resultStack = foodStack.copy();
-        resultStack.setCount(1); // 合成结果通常是1个
-        resultStack.set(DataComponents.FOOD, newFoodProp);
 
-        // 可选：你可能想改个名字，比如 "注魔的 [原名]"
-        // resultStack.set(DataComponents.CUSTOM_NAME, Component.literal("注魔 ").append(resultStack.getHoverName()));
+        // ================== 调试结果对象 ==================
+        int resultId = System.identityHashCode(resultStack);
+        System.out.println(">>> 生成结果");
+        System.out.println("    [4] 最终结果内存ID: " + resultId);
+        System.out.println("    [5] 结果与中间变量是否相同: " + (resultStack == foodStack));
+        // ===============================================
+
+        resultStack.setCount(1);
+        resultStack.set(DataComponents.FOOD, newFoodProp);
 
         return resultStack;
     }

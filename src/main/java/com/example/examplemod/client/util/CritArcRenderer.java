@@ -37,6 +37,7 @@ public class CritArcRenderer {
         // --- 1. 计算动画因子 ---
         long time = Util.getMillis();
 
+
         // A. 脉冲 (Pulse): 模拟心跳，快速扩张后回缩
         // ((sin(t) + 1) / 2) ^ 4 让波形更尖锐，产生“跳动”感
         float pulseSpeed = time / 150.0f;

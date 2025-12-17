@@ -5,10 +5,9 @@ import com.example.examplemod.client.entity.GoldenGateRenderer;
 import com.example.examplemod.client.entity.SwordProjectileRenderer;
 
 
+import com.example.examplemod.client.layer.BlockCapeLayer;
 import com.example.examplemod.client.particle.BlackHoleParticle;
 import com.example.examplemod.client.particle.ModParticles;
-import com.example.examplemod.client.screen.AttributeEditorScreen;
-import com.example.examplemod.client.screen.TradeScreen;
 import com.example.examplemod.client.util.CustomCubeRenderer;
 import com.example.examplemod.client.util.EffectOrbitRenderer;
 import com.example.examplemod.component.*;
@@ -18,8 +17,12 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -29,7 +32,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.gui.ClientTooltipComponentManager;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -40,10 +42,6 @@ import static com.example.examplemod.register.ModEntities.GOLDENGATEENTITY;
 
 @EventBusSubscriber(modid = ExampleMod.MODID, value = Dist.CLIENT)
 public class ClientSetup {
-    @SubscribeEvent
-    public static void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(ModMenus.TRADE_MENU.get(), TradeScreen::new);
-    }
     // 定义按键 (例如 'K' 键)
     public static final KeyMapping OPEN_EDITOR_KEY = new KeyMapping(
             "key.examplemod.open_editor",
@@ -75,14 +73,6 @@ public class ClientSetup {
                 return;
             }
 
-            if (!stack.isEmpty()) {
-                // 直接在客户端打开 Screen
-                // 因为这只是个 UI，不需要服务端的 Menu/Container 参与
-                // 数据同步靠 UI 里的 Packet 发送
-                mc.setScreen(new AttributeEditorScreen(stack));
-            } else {
-                mc.player.displayClientMessage(Component.literal("请手持物品！"), true);
-            }
         }
     }
 
@@ -165,14 +155,28 @@ public class ClientSetup {
         }
     }
 
+    @SubscribeEvent
+    public static void onAddLayers(EntityRenderersEvent.AddLayers event) {
+        // 遍历所有注册过的 EntityType
+        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
+            // 获取该实体的渲染器
+            EntityRenderer<?> renderer = event.getRenderer(entityType);
 
+            // 只有 LivingEntityRenderer (生物渲染器) 才能添加 Layer
+            if (renderer instanceof LivingEntityRenderer livingRenderer) {
+                // 强行把我们的“方块披风层”塞进去
+                livingRenderer.addLayer(new BlockCapeLayer<>(livingRenderer));
+            }
+        }
+    }
     @SubscribeEvent
     private static void onRenderLevelStage(RenderLevelStageEvent event) {
         // 只在 AFTER_LEVEL 阶段进行绘制
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) return;
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) return;
 
         // 调用我们单一职责的渲染器实例
         CustomCubeRenderer.INSTANCE.render(event);
+//        CustomItemRenderer.INSTANCE.render(event);
     }
 }
 

@@ -1,0 +1,59 @@
+{
+  "type": "examplemod:spell_level",
+  "definition": {
+    "affix_type": "basic_effect",
+    "weights": {
+      "weight": 25,
+      "quality": 0.1
+    },
+    "exclusive_set": []
+  },
+  "school": "gtbcs_geomancy_plus:geo",
+  "values": {
+    "apotheosis:rare": {
+      "level": {
+        "min": 1.0,
+        "steps": 1,
+        "step": 0.0
+      }
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 1.0,
+        "steps": 1,
+        "step": 1.0
+      }
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 1.0,
+        "steps": 2,
+        "step": 1.0
+      }
+    }
+  },
+  "types": [
+    "apotheosis:boots",
+    "apotheosis:chestplate",
+    "apotheosis:helmet",
+    "apotheosis:leggings",
+    "apotheosis:melee_weapon",
+    "apotheosis:trident",
+    "apotheosis:bow",
+    "examplemod:spellbook",
+    "examplemod:staff",
+    "apotheosis:breaker",
+    "apotheosis:shears",
+    "apotheosis:shield",
+    "examplemod:back",
+    "examplemod:belt",
+    "examplemod:body",
+    "examplemod:bracelet",
+    "examplemod:charm",
+    "examplemod:hands",
+    "examplemod:head",
+    "examplemod:necklace",
+    "examplemod:ring",
+    "examplemod:sheath"
+  ]
+}

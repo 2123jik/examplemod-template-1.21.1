@@ -1,0 +1,73 @@
+{
+  "type": "examplemod:spell_level",
+  "definition": {
+    "affix_type": "basic_effect",
+    "weights": {
+      "weight": 10,
+      "quality": 0.5
+    },
+    "exclusive_set": []
+  },
+  "spell": "irons_spellbooks:ice_tomb",
+  "values": {
+    "apotheosis:common": {
+      "level": {
+        "min": 1.0,
+        "steps": 1,
+        "step": 0.0
+      }
+    },
+    "apotheosis:uncommon": {
+      "level": {
+        "min": 1.0,
+        "steps": 1,
+        "step": 1.0
+      }
+    },
+    "apotheosis:rare": {
+      "level": {
+        "min": 1.0,
+        "steps": 2,
+        "step": 1.0
+      }
+    },
+    "apotheosis:epic": {
+      "level": {
+        "min": 1.0,
+        "steps": 3,
+        "step": 1.0
+      }
+    },
+    "apotheosis:mythic": {
+      "level": {
+        "min": 1.0,
+        "steps": 4,
+        "step": 1.0
+      }
+    }
+  },
+  "types": [
+    "apotheosis:boots",
+    "apotheosis:chestplate",
+    "apotheosis:helmet",
+    "apotheosis:leggings",
+    "apotheosis:melee_weapon",
+    "apotheosis:trident",
+    "apotheosis:bow",
+    "examplemod:spellbook",
+    "examplemod:staff",
+    "apotheosis:breaker",
+    "apotheosis:shears",
+    "apotheosis:shield",
+    "examplemod:back",
+    "examplemod:belt",
+    "examplemod:body",
+    "examplemod:bracelet",
+    "examplemod:charm",
+    "examplemod:hands",
+    "examplemod:head",
+    "examplemod:necklace",
+    "examplemod:ring",
+    "examplemod:sheath"
+  ]
+}

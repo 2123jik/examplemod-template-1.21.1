@@ -32,22 +32,6 @@ import static twilightforest.init.TFItems.GIANT_SWORD;
 public class WorldEventHandler {
 
     @SubscribeEvent
-    public static void onBedrockPlace(BlockEvent.EntityPlaceEvent event) {
-        if (event.getState().is(Blocks.BEDROCK)) {
-            ItemStack itemStack = new ItemStack(GIANT_SWORD.get());
-            itemStack.set(DataComponents.LORE, ItemLore.EMPTY.withLineAdded(Component.literal("下次攻击伤害修正+200%，但经验等级-2并持续2分钟虚弱II")));
-
-            if (event.getEntity() instanceof Player player) {
-                if (!player.getInventory().add(itemStack)) {
-                    player.drop(itemStack, false);
-                }
-            } else if (event.getLevel() instanceof Level level) {
-                level.addFreshEntity(new ItemEntity(level, event.getPos().getX() + 0.5, event.getPos().getY() + 1, event.getPos().getZ() + 0.5, itemStack));
-            }
-        }
-    }
-
-    @SubscribeEvent
     public static void onAnvilLand(AnvilLandEvent event) {
         if (event.getLevel().isClientSide()) return;
 

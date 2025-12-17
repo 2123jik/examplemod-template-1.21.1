@@ -1,8 +1,6 @@
 package com.example.examplemod.server.damage;
 
 import com.example.examplemod.bridge.ApothCritBridge;
-import com.example.examplemod.network.DamageIndicatorPayload;
-import com.example.examplemod.network.NetworkHandler; // 假设你有这个
 import dev.xkmc.l2damagetracker.contents.attack.AttackListener;
 import dev.xkmc.l2damagetracker.contents.attack.DamageData;
 import dev.xkmc.l2damagetracker.contents.attack.PlayerAttackCache;
@@ -49,9 +47,6 @@ public class DamageIndicatorListener implements AttackListener {
             } else if (isVanillaJump) {
                 critType = 1;
             }
-
-            // 发包 (注意：只有神化类型时 layers 才有效，其他时候 layers 传 0 即可)
-            NetworkHandler.sendToPlayer(player, amount, critType, apothLayers);
         }
     }
 }

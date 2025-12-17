@@ -2,6 +2,7 @@ package com.example.examplemod.register;
 
 import com.example.examplemod.ExampleMod;
 import com.mojang.serialization.Codec;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -25,4 +26,8 @@ public class ModAttachments {
                     .copyOnDeath() // 推荐开启，防止玩家死亡重置后丢失归属信息
                     .build()
     );
+
+    public static void register(IEventBus modEventBus){
+        ATTACHMENT_TYPES.register(modEventBus); // <-- 修正：直接注册 DeferredRegister
+    }
 }

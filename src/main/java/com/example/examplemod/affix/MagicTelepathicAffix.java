@@ -1,6 +1,5 @@
 package com.example.examplemod.affix;
 
-import com.example.examplemod.category.LootCategories;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.shadowsoffire.apotheosis.affix.Affix;

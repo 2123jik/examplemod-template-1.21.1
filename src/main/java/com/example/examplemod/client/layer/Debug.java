@@ -4,6 +4,7 @@ import com.example.examplemod.ExampleMod;
 import dev.xkmc.l2core.capability.player.PlayerCapabilityHolder;
 import dev.xkmc.l2hostility.content.capability.player.PlayerDifficulty;
 import dev.xkmc.l2hostility.init.registrate.LHMiscs;
+import mod.azure.azurelib.core.object.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -14,7 +15,7 @@ import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.network.chat.Component; // 重要：引入 Component
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
@@ -23,15 +24,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-
-import static com.example.examplemod.util.AttributeHelper.getL2HostilityLevel;
 
 @EventBusSubscriber(modid = ExampleMod.MODID, value = Dist.CLIENT)
 public class Debug {
-
+    public static double scale=-1;
     @SubscribeEvent
     public static void registerGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(ExampleMod.MODID, "debug"), new DebugHudLayer());
@@ -44,69 +41,80 @@ public class Debug {
             if (mc.player == null || mc.level == null || mc.options.hideGui) {
                 return;
             }
-
             LocalPlayer player = mc.player;
             Font font = mc.font;
-            List<Component> debugLines = new ArrayList<>();
+            int currentFps = mc.getFps();
 
-            // --- 1. FPS ---
-            // 对应 key: gui.examplemod.debug.fps -> "[ FPS: %s ]"
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.fps", mc.getFps())
-                    .withStyle(ChatFormatting.GOLD));
+            String xVal = String.format(Locale.ROOT, "%.1f", player.getX());
+            String yVal = String.format(Locale.ROOT, "%.1f", player.getY());
+            String zVal = String.format(Locale.ROOT, "%.1f", player.getZ());
 
-            // --- 2. 坐标 (X, Y, Z) ---
-            // 我们先格式化数字为字符串 (保留2位小数)，再传给翻译组件
-            String xVal = String.format(Locale.ROOT, "%.2f", player.getX());
-            String yVal = String.format(Locale.ROOT, "%.2f", player.getY());
-            String zVal = String.format(Locale.ROOT, "%.2f", player.getZ());
+            String difficulty = ((PlayerDifficulty)((PlayerCapabilityHolder) LHMiscs.PLAYER.type()).getOrCreate(player)).getLevel(player).getStr();
 
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.x", xVal).withStyle(ChatFormatting.GREEN));
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.y", yVal).withStyle(ChatFormatting.GREEN));
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.z", zVal).withStyle(ChatFormatting.GREEN));
+            String facing = player.getDirection().getName().toUpperCase();
 
-            // --- 3. 方向 (Facing) ---
-            // 技巧：直接利用原版的翻译键。原版方向键格式为 "direction.minecraft.north" 等
-            // player.getDirection().getName() 会返回 "north", "east" 等
-            String directionKey = "direction.minecraft." + player.getDirection().getName();
-
-            // 组合： "朝向: " + "北"
-            MutableComponent facingLine = Component.translatable("gui." + ExampleMod.MODID + ".debug.facing",
-                    Component.translatable(directionKey).withStyle(ChatFormatting.GREEN) // 将方向作为参数传入
-            ).withStyle(ChatFormatting.GREEN);
-
-            debugLines.add(facingLine);
-
-            // --- 4. 生物群系 (Biome) ---
             BlockPos pos = player.blockPosition();
             Holder<Biome> biomeHolder = mc.level.getBiome(pos);
-
-            // 获取 Biome 的翻译组件。如果有注册名会自动查找 "biome.minecraft.plains"，如果是 Mod 的也会尝试查找对应的 key
-            Component biomeName = Component.literal(biomeHolder.unwrapKey().map(k -> k.location().toString()).orElse("Unknown"));
-            // 尝试获取更友好的翻译名 (如果有)
+            Component biomeName = Component.literal(biomeHolder.unwrapKey().map(k -> k.location().getPath()).orElse("Unknown"));
             if (biomeHolder.unwrapKey().isPresent()) {
                 biomeName = Component.translatable(Util.makeDescriptionId("biome", biomeHolder.unwrapKey().get().location()));
             }
 
-            debugLines.add(Component.translatable("gui." + ExampleMod.MODID + ".debug.biome",
-                    biomeName.copy().withStyle(ChatFormatting.GREEN)
-            ).withStyle(ChatFormatting.GREEN));
-                debugLines.add(Component.literal("恶意等级："+ ((PlayerDifficulty)((PlayerCapabilityHolder) LHMiscs.PLAYER.type()).getOrCreate(player)).getLevel(player).getStr()).withStyle(ChatFormatting.GREEN));
-            int startX = 2300/mc.options.guiScale().get().intValue();
-            int startY = 70;
-            int lineHeight = font.lineHeight + 2;
-            int padding = 2;
-            int backgroundColor = 0x80000000;
+            MutableComponent fullText = Component.empty();
+            var experienceLevel=player.experienceLevel;
+            var experienceProgress=Math.floor(player.experienceProgress*100);
 
-            for (Component line : debugLines) {
-                int textWidth = font.width(line);
+            fullText.append(entry("饥饿值", player.getFoodData().getFoodLevel() + "/" + 40));
+            fullText.append(separator());
+            fullText.append(entry("等级",String.valueOf(experienceLevel)));
+            fullText.append(separator());
+            fullText.append(entry("离升级还差", experienceProgress + "%"));
+            fullText.append(separator());
+            fullText.append(entry("当前", String.valueOf(currentFps)));
+            fullText.append(separator());
+            fullText.append(entry("x", xVal));
+            fullText.append(separator());
+            fullText.append(entry("y", yVal));
+            fullText.append(separator());
+            fullText.append(entry("z", zVal));
+            fullText.append(separator());
+            fullText.append(Component.literal("群系:").withStyle(ChatFormatting.GRAY))
+                    .append(biomeName.copy().withStyle(ChatFormatting.WHITE)); // 群系名字特殊处理
+            fullText.append(separator());
+            fullText.append(entry("难度", difficulty));
+            fullText.append(separator());
+            fullText.append(entry("朝向", facing));
 
-                guiGraphics.fill(startX - padding, startY - padding, startX + textWidth + padding, startY + font.lineHeight + padding - 1, backgroundColor);
+            // --- 3. 渲染逻辑 (紧贴右上角) ---
 
-                guiGraphics.drawString(font, line, startX, startY, 0xFFFFFFFF, true);
+            int screenWidth = guiGraphics.guiWidth();
+            int textWidth = font.width(fullText);
 
+            // 边距设置
+            int marginX = 2; // 距离右边缘的像素
+            int marginY = 2; // 距离顶部的像素
+            int padding = 2; // 背景黑框的内边距
 
-                startY += lineHeight;
-            }
+            // 计算左上角起始 X 坐标：屏幕宽 - 文本宽 - 边距
+            int startX = screenWidth - textWidth - marginX;
+            int startY = marginY;
+
+            // 绘制背景 (黑色半透明)
+            guiGraphics.fill(startX - padding, startY - padding, startX + textWidth + padding, startY + font.lineHeight + padding - 1, Color.ofRGBA(0.5f,0.5f,0.5f,0.2f).getColor());
+
+            // 绘制文本
+            guiGraphics.drawString(font, fullText, startX, startY, 0xFFFFFFFF, true);
+        }
+
+        // 辅助函数：生成 "标签:数值" 格式
+        private static MutableComponent entry(String label, String value) {
+            return Component.literal(label + ":").withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(value).withStyle(ChatFormatting.WHITE));
+        }
+
+        // 辅助函数：生成分隔符 " | "
+        private static Component separator() {
+            return Component.literal(" | ").withStyle(ChatFormatting.GRAY);
         }
     }
 }

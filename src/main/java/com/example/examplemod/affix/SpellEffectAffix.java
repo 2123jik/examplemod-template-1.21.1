@@ -1,12 +1,16 @@
 package com.example.examplemod.affix;
 
+import com.example.examplemod.category.LootCategories;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.shadowsoffire.apotheosis.Apoth;
+import dev.shadowsoffire.apotheosis.Apotheosis;
 import dev.shadowsoffire.apotheosis.affix.Affix;
 import dev.shadowsoffire.apotheosis.affix.AffixDefinition;
 import dev.shadowsoffire.apotheosis.affix.AffixInstance;
 import dev.shadowsoffire.apotheosis.loot.LootCategory;
 import dev.shadowsoffire.apotheosis.loot.LootRarity;
+import dev.shadowsoffire.apotheosis.loot.RarityRegistry;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.util.StepFunction;
 import net.minecraft.core.Holder;
@@ -25,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class SpellEffectAffix extends Affix {
+
     public static final Codec<SpellEffectAffix> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                     Affix.affixDef(),
@@ -35,7 +40,7 @@ public class SpellEffectAffix extends Affix {
                     Codec.BOOL.optionalFieldOf("stack_on_reapply", false).forGetter(a -> a.stackOnReapply),
                     Codec.intRange(1, 255).optionalFieldOf("stacking_limit", 255).forGetter(a -> a.stackingLimit))
             .apply(inst, SpellEffectAffix::new));
-
+    public final static Set<LootCategory> categories = Set.of(LootCategories.HEAD.value(), LootCategories.BELT.value(), LootCategories.RING.value(),LootCategories.NECKLACE.value(),LootCategories.BACK.value(),LootCategories.BODY.value(),LootCategories.BRACELET.value(),LootCategories.CHARM.value(),LootCategories.HANDS.value(),LootCategories.SHEATH.value(),LootCategories.STAFF.value(),LootCategories.SPELLBOOK.value(),LootCategories.TRINKET.value(), Apoth.LootCategories.BOW, Apoth.LootCategories.BOOTS, Apoth.LootCategories.TRIDENT, Apoth.LootCategories.SHIELD,Apoth.LootCategories.SHEARS,Apoth.LootCategories.MELEE_WEAPON,Apoth.LootCategories.LEGGINGS,Apoth.LootCategories.HELMET,Apoth.LootCategories.CHESTPLATE,Apoth.LootCategories.BREAKER);
     protected final Holder<MobEffect> effect;
     protected final SpellTarget target;
     protected final Map<LootRarity, EffectData> values;
@@ -183,4 +188,5 @@ public class SpellEffectAffix extends Affix {
             return new MobEffectInstance(effect, this.duration.getInt(clampedLevel), this.amplifier.getInt(clampedLevel));
         }
     }
+
 }

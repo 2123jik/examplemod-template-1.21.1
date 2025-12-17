@@ -130,7 +130,11 @@ configurations {
 dependencies {
     compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
    implementation fileTree(dir: 'C:/Users/lyj/Saved Games/mc/.minecraft/versions/1.21.1-NeoForge_21.1.215/mods',
-           include: ['*.jar'],exclude: ['ProbeJS-7.7.2.jar', 'kubejs-neoforge-2101.7.2-build.321.jar','rhino-2101.2.7-build.81.jar','examplemod-1.0.0.jar'])
+           include: ['*.jar'],exclude: ['ProbeJS-7.7.2.jar',
+                                        'kubejs-neoforge-2101.7.2-build.321.jar',
+                                        'rhino-2101.2.7-build.81.jar',
+                                        'examplemod-1.0.0.jar',
+   ])
     runtimeOnly "curse.maven:atlasviewer-633577:6088094"
         localRuntime "curse.maven:atlas-api-1145462:5940096"
     // Example optional mod dependency with JEI

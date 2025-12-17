@@ -26,6 +26,10 @@
       "affix_type": "stat"
     },
     {
+      "type": "apotheosis:affix",
+      "affix_type": "stat"
+    },
+    {
       "type": "apotheosis:chanced",
       "chance": 0.25,
       "rule": {
@@ -46,12 +50,8 @@
       }
     },
     {
-      "type": "apotheosis:chanced",
-      "chance": 0.75,
-      "rule": {
-        "type": "apotheosis:affix",
-        "affix_type": "ability"
-      }
+      "type": "apotheosis:affix",
+      "affix_type": "ability"
     },
     {
       "type": "apotheosis:select",

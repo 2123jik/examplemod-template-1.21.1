@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -21,9 +22,12 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.example.examplemod.ExampleMod.loc;
 import static net.minecraft.resources.ResourceLocation.withDefaultNamespace;
@@ -103,5 +107,41 @@ public class ServerEventUtils {
 
         itemStack.set(DataComponents.ATTRIBUTE_MODIFIERS, builder.build());
         itemStack.set(valueComponent, newTotalAmount);
+    }
+    /**
+     * 遍历实体身上所有的装备物品，包括：
+     * 1. 主手、副手
+     * 2. 盔甲栏 (头、胸、腿、脚)
+     * 3. Curios 所有饰品栏 (戒指、项链、护符等)
+     *
+     * @param entity  目标实体
+     * @param processor 对每个非空物品执行的逻辑
+     */
+    public static void forEachItem(LivingEntity entity, Consumer<ItemStack> processor) {
+        if (entity == null) return;
+
+        // 1. 遍历原版装备 (主手、副手、四件套盔甲)
+        // getAllSlots() 返回的是 Iterable<ItemStack>
+        for (ItemStack stack : entity.getAllSlots()) {
+            if (stack != null && !stack.isEmpty()) {
+                processor.accept(stack);
+            }
+        }
+
+        // 2. 遍历 Curios 饰品
+        // 使用 Optional 防止某些实体没有饰品能力，或者 Mod 未正确加载
+        CuriosApi.getCuriosInventory(entity).ifPresent(curiosHandler -> {
+            // 获取所有类型的饰品槽位 (Key: 槽位ID, Value: 处理器)
+            curiosHandler.getCurios().values().forEach(slotHandler -> {
+                IDynamicStackHandler stackHandler = slotHandler.getStacks();
+                // 遍历该类型下的所有格子 (比如有两个戒指槽)
+                for (int i = 0; i < stackHandler.getSlots(); i++) {
+                    ItemStack stack = stackHandler.getStackInSlot(i);
+                    if (stack != null && !stack.isEmpty()) {
+                        processor.accept(stack);
+                    }
+                }
+            });
+        });
     }
 }
